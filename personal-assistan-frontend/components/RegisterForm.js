@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import api from '../utils/api';
+import styles from '../styles/RegisterForm.module.css';
 
 const RegisterForm = () => {
     const [name, setName] = useState('');
@@ -14,8 +15,7 @@ const RegisterForm = () => {
         try {
             const response = await api.post('/api/v1/users/register', { name, email, password });
             if (response.data.ok) {
-                // Redirigir al usuario al login
-                router.push('/login');
+                router.push('/login'); // Redirige al login si el registro es exitoso
             } else {
                 setError('Error registering user');
             }
@@ -25,39 +25,38 @@ const RegisterForm = () => {
     };
 
     return (
-        <div>
-            <h2>Register</h2>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Name</label>
+        <div className={styles.container}>
+            <div className={styles.form}>
+                <h2 className={styles.title}>Sign In</h2>
+                {error && <p className={styles.error}>{error}</p>}
+                <form onSubmit={handleSubmit}>
                     <input
                         type="text"
+                        placeholder="Full Name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
+                        className={styles.inputField}
                     />
-                </div>
-                <div>
-                    <label>Email</label>
                     <input
                         type="email"
+                        placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        className={styles.inputField}
                     />
-                </div>
-                <div>
-                    <label>Password</label>
                     <input
                         type="password"
+                        placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        className={styles.inputField}
                     />
-                </div>
-                <button type="submit">Register</button>
-            </form>
+                    <button type="submit" className={styles.button}>Sign In</button>
+                </form>
+            </div>
         </div>
     );
 };

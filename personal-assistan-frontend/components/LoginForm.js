@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import api from '../utils/api';
+import styles from '../styles/LoginForm.module.css';
 
 const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -12,46 +13,49 @@ const LoginForm = () => {
         e.preventDefault();
         try {
             const response = await api.post('/api/v1/users/login', { email, password });
-
-            // Verifica si la respuesta tiene ok: true
             if (response.data.ok) {
-                // Almacenar el token en localStorage
                 localStorage.setItem('token', response.data.jwt);
-                // Redirigir al usuario a la página principal
                 router.push('/');
             } else {
                 setError('Invalid email or password');
             }
         } catch (err) {
+            console.error(err);
             setError('Login failed');
         }
     };
 
+    // Función para redirigir a la página de registro
+    const handleSignupRedirect = () => {
+        router.push('/register');
+    };
+
     return (
-        <div>
-            <h2>Login</h2>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Email</label>
+        <div className={styles.container}>
+            <div className={styles.form}>
+                <h2 className={styles.title}>Log In</h2>
+                {error && <p className={styles.error}>{error}</p>}
+                <form onSubmit={handleSubmit}>
                     <input
                         type="email"
+                        placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        className={styles.inputField}
                     />
-                </div>
-                <div>
-                    <label>Password</label>
                     <input
                         type="password"
+                        placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        className={styles.inputField}
                     />
-                </div>
-                <button type="submit">Login</button>
-            </form>
+                    <button type="submit" className={styles.button}>Log In</button>
+                </form>
+                <p className={styles.signup} onClick={handleSignupRedirect}>Sign up</p>
+            </div>
         </div>
     );
 };
