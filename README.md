@@ -128,5 +128,8 @@ npm install electron-builder --save-dev
 
 ----------------
 npm install -g nodemon 
+npm i bcryptjs
+npm i jsonwebtoken
+npm install axios
 
 
