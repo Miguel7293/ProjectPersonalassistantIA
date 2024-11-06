@@ -1,16 +1,28 @@
-import 'dotenv/config'
+import 'dotenv/config';
 import express from 'express';
+import cors from 'cors'; // Asegúrate de importar CORS
 import { connectDB } from './database/connection.database.js';
 import userRouter from './routes/user.route.js';
 
 const app = express();
 
-app.use(express.json()); //habilitamos
-app.use(express.urlencoded({ extended: true })); //habilitamos
+// Configuración de CORS
+const corsOptions = {
+  origin: 'http://localhost:3000',  // Permite solicitudes desde tu frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Métodos permitidos
+  allowedHeaders: ['Content-Type'],  // Encabezados permitidos
+};
 
-connectDB();
+// Usamos CORS en todas las rutas
+app.use(cors(corsOptions));
 
-app.use('/api/v1/users', userRouter);
+app.use(express.json()); // Habilitamos para recibir JSON
+app.use(express.urlencoded({ extended: true })); // Habilitamos para recibir datos URL-encoded
+
+connectDB(); // Establecemos la conexión con la base de datos
+
+// Rutas
+app.use('/api/v1/users', userRouter);  // Ruta para el login y registro
 
 const PORT = process.env.PORT || 5000;
 
