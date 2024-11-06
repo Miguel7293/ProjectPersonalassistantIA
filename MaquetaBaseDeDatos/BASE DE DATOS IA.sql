@@ -1,3 +1,8 @@
+
+DROP DATABASE DB_IA_ASSITANT;
+
+CREATE DATABASE DB_IA_ASSITANT;
+
 CREATE TABLE USUARIO (
     ID_Usuario SERIAL PRIMARY KEY,
     Nombre VARCHAR(100) NOT NULL,
@@ -60,3 +65,42 @@ CREATE TABLE USUARIO_TAREA (
     FOREIGN KEY (ID_Usuario) REFERENCES USUARIO (ID_Usuario) ON DELETE CASCADE,
     FOREIGN KEY (ID_Tarea) REFERENCES TAREA (ID_Tarea) ON DELETE CASCADE
 );
+
+
+
+
+----DATOS PARA PROBAR EL LOG IN----
+
+INSERT INTO USUARIO (Nombre, Correo, Contraseña) VALUES
+('Juan Perez', 'juan.perez@email.com', 'password123'),
+('Maria Garcia', 'maria.garcia@email.com', 'password123'),
+('Carlos Lopez', 'carlos.lopez@email.com', 'password123'),
+('Ana Martinez', 'ana.martinez@email.com', 'password123'),
+('Pedro Fernandez', 'pedro.fernandez@email.com', 'password123'),
+('Laura Rodriguez', 'laura.rodriguez@email.com', 'password123'),
+('Luis Gonzalez', 'luis.gonzalez@email.com', 'password123'),
+('Sofia Perez', 'sofia.perez@email.com', 'password123'),
+('David Sanchez', 'david.sanchez@email.com', 'password123'),
+('Eva Jimenez', 'eva.jimenez@email.com', 'password123'),
+('Andres Torres', 'andres.torres@email.com', 'password123'),
+('Clara Diaz', 'clara.diaz@email.com', 'password123'),
+('Raul Vazquez', 'raul.vazquez@email.com', 'password123'),
+('Sara Castro', 'sara.castro@email.com', 'password123'),
+('Fernando Ruiz', 'fernando.ruiz@email.com', 'password123'),
+('Isabel Morales', 'isabel.morales@email.com', 'password123'),
+('Javier Romero', 'javier.romero@email.com', 'password123'),
+('Lucia Hernandez', 'lucia.hernandez@email.com', 'password123'),
+('Tomas Martin', 'tomas.martin@email.com', 'password123');
+
+
+------- ELIMINAR TODAS LAS TABLAS --------
+DO $$ 
+DECLARE
+    tabla RECORD;
+BEGIN
+    FOR tabla IN
+        SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+    LOOP
+        EXECUTE format('DROP TABLE IF EXISTS %I CASCADE', tabla.tablename);
+    END LOOP;
+END $$;

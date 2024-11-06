@@ -126,6 +126,7 @@ npm install electron-builder --save-dev
   "build:electron": "next build && electron-builder"
 }
 
-
+----------------
+npm install -g nodemon 
 
 
