@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import api from '../utils/api';
@@ -15,7 +16,10 @@ const LoginForm = () => {
             const response = await api.post('/api/v1/users/login', { email, password });
             if (response.data.ok) {
                 localStorage.setItem('token', response.data.jwt);
-                router.push('/');
+                localStorage.setItem('username', response.data.user.nombre);  // Guardamos el nombre de usuario
+                console.log('Nombre de usuario recibido desde el LOGIN:', response.data.user.nombre); // Imprimir en consola el nombre de usuario
+
+                router.push('/dashBoard');  // Redirigimos a dashBoard
             } else {
                 setError('Invalid email or password');
             }
@@ -25,7 +29,6 @@ const LoginForm = () => {
         }
     };
 
-    // Función para redirigir a la página de registro
     const handleSignupRedirect = () => {
         router.push('/register');
     };

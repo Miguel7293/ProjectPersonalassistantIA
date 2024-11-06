@@ -1,0 +1,54 @@
+/* DashBoard.module.css */
+.dashboardContainer {
+    padding: 40px;
+    text-align: center;
+    background-color: #ffffff; /* Fondo blanco */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Arial', sans-serif;
+}
+
+.dashboardTitle {
+    font-size: 2.2rem;
+    color: #000000; /* Texto negro */
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.dashboardMessage {
+    font-size: 1.2rem;
+    color: #333333; /* Texto en gris oscuro */
+    margin-top: 20px;
+}
+
+.dashboardUser {
+    font-size: 1.4rem;
+    color: #000000; /* Nombre en negro */
+    font-weight: normal;
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #f4f4f4; /* Fondo gris claro */
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dashboardButton {
+    margin-top: 30px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #000000; /* Botón negro */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.dashboardButton:hover {
+    background-color: #444444; /* Botón más claro cuando se pasa el ratón */
+}
