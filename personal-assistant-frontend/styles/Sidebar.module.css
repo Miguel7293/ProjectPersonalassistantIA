@@ -1,0 +1,34 @@
+/* styles/Sidebar.module.css */
+@import 'Fonts.css';
+
+.sidebar {
+    font-family: 'Itim', sans-serif;
+    width: 250px;
+    background-color: #f4f4f4;
+    border-right: 1px solid #ddd;
+    padding: 20px;
+    font-size: 25px;
+}
+
+.menuList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menuList li {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.menuList li:hover {
+    background-color: #ddd;
+}
+
+.menuList li.active {
+    font-weight: bold;
+    color: #000000;
+    background-color: #D7D7D7;
+    border-radius: 5px;
+}

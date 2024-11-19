@@ -1,54 +1,70 @@
-/* DashBoard.module.css */
+/* Contenedor principal del dashboard */
 .dashboardContainer {
-    padding: 40px;
-    text-align: center;
-    background-color: #ffffff; /* Fondo blanco */
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    background-color: #f4f4f4;
+    font-family: Arial, sans-serif;
 }
 
-.dashboardTitle {
-    font-size: 2.2rem;
-    color: #000000; /* Texto negro */
-    margin-bottom: 20px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.dashboardMessage {
-    font-size: 1.2rem;
-    color: #333333; /* Texto en gris oscuro */
-    margin-top: 20px;
-}
-
-.dashboardUser {
-    font-size: 1.4rem;
-    color: #000000; /* Nombre en negro */
-    font-weight: normal;
-    margin-top: 10px;
-    padding: 8px;
-    border-radius: 4px;
-    background-color: #f4f4f4; /* Fondo gris claro */
-    display: inline-block;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.dashboardButton {
-    margin-top: 30px;
-    padding: 10px 20px;
-    font-size: 1rem;
-    background-color: #000000; /* Botón negro */
+/* Botón para mostrar/ocultar el menú */
+.menuToggleButton {
+    padding: 10px 15px;
+    background-color: #333;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    align-self: flex-start;
+    margin: 10px;
 }
 
-.dashboardButton:hover {
-    background-color: #444444; /* Botón más claro cuando se pasa el ratón */
+.menuToggleButton:hover {
+    background-color: #555;
+}
+
+/* Contenedor del contenido principal */
+.dashboardContent {
+    display: flex;
+    flex: 1;
+}
+
+/* Menú lateral */
+.sidebar {
+    width: 200px;
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Lista del menú */
+.menuList {
+    list-style: none;
+    padding: 0;
+}
+
+.menuList li {
+    margin: 15px 0;
+    cursor: pointer;
+    font-size: 1rem;
+    text-align: left;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.menuList li:hover {
+    color: #007BFF; /* Color azul en hover */
+}
+
+.menuList li.active {
+    font-weight: bold;
+    color: #000;
+}
+
+/* Contenido principal */
+.mainContent {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
 }
