@@ -39,6 +39,7 @@ const register = async (req, res) => {
             }
         )
 
+
         return res.json({ ok: true, jwt: token, user: newUser });
     } catch (err) {
         console.error(err);
@@ -68,13 +69,15 @@ const login = async (req, res) => {
            .status(404).json({error: 'User not found'});
         }
 
-        const isMatch = await bcryptjs.compare(password, user['contraseña']);
+        const isMatch = await bcryptjs.compare(password, user['password']);
 
         if(!isMatch){
             return res
            .status(403).json({error: 'Invalid credentials'});
         }
-        
+
+        console.log('Nuevo usuario creado:', user);
+
         const token = jwt.sign({
             email: user.email,
         },
@@ -83,6 +86,8 @@ const login = async (req, res) => {
                 expiresIn: '1h'
             }
         )
+
+        console.log('Token generado:', token);
 
         return res.json({ ok: true, jwt: token, user });
 
@@ -95,7 +100,21 @@ const login = async (req, res) => {
     }
 };
 
+const profileDashBoard = async(req, res) => {
+    try {
+        const user = await UserModel.findOneByEmail(req.email);
+        return res.json({ ok: true, msg: user });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            ok: false,
+            msg: 'Server error'
+        });
+    }
+}
+
 export const UserController = {
     register,
-    login
+    login,
+    profileDashBoard
 };

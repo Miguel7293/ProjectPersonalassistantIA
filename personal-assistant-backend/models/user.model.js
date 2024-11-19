@@ -2,7 +2,7 @@ import { db } from '../database/connection.database.js';
 
 const create = async ({ name, email, password }) => {
     const query = {
-        text: 'INSERT INTO usuario (nombre, correo, contraseña) VALUES ($1, $2, $3) RETURNING *',
+        text: 'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
         values: [name, email, password]
     };
     const { rows } = await db.query(query);
@@ -11,7 +11,7 @@ const create = async ({ name, email, password }) => {
 
 const findOneByEmail = async (email) => {
     const query = {
-        text: 'SELECT * FROM usuario WHERE correo = $1',
+        text: 'SELECT * FROM users WHERE email = $1',
         values: [email]
     };
 
