@@ -12,4 +12,5 @@ router.post('/login', UserController.login);
 
 // Ruta par mostrar informacion por el DashBoars
 router.get('/getDashboardProfile', verifyToken, UserController.profileDashBoard);
+
 export default router;
