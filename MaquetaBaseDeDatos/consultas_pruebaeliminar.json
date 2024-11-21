@@ -1,0 +1,60 @@
+
+{
+    "sqlQuery": "INSERT",
+    "Project_ID": 1,
+    "Title": "New Task",
+    "Description": "Description of the task",
+    "Start_Date": "2024-11-20",
+    "End_Date": "2024-11-25",
+    "Due_Date": "2024-11-23",
+    "Status": "Pending"
+}
+{
+    "sqlQuery": "UPDATE",
+    "Task_ID": 5,
+    "Title": "Updated Task",
+    "Description": "Updated description",
+    "Start_Date": "2024-11-21",
+    "End_Date": "2024-11-26",
+    "Due_Date": "2024-11-24",
+    "Status": "Completed"
+}
+{
+    "sqlQuery": "SELECT",
+    "Project_ID": 1
+}
+{
+    "sqlQuery": "DELETE",
+    "Task_ID": 5
+}
+
+
+
+
+
+
+{
+    "sqlQuery": "INSERT",
+    "Name": "Project Alpha",
+    "Start_Date": "2024-11-20",
+    "End_Date": "2024-12-31"
+}
+{
+    "sqlQuery": "SELECT",
+    "User_ID": 2
+}
+{
+    "sqlQuery": "SELECT",
+    "Project_ID": 1
+}
+{
+    "sqlQuery": "UPDATE",
+    "Project_ID": 1,
+    "Name": "Project Beta",
+    "Start_Date": "2024-12-01",
+    "End_Date": "2025-01-31"
+}
+{
+    "sqlQuery": "DELETE",
+    "Project_ID": 1
+}

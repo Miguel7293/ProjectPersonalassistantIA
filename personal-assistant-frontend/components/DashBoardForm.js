@@ -5,7 +5,7 @@ import Sidebar from './Sidebar';
 // Importa las secciones
 import DashboardSection from './sections/DashboardSection';
 import SchedulesSection from './sections/SchedulesSection';
-import ProjectsSection from './sections/ProjectsSection';
+import ProjectsSection from './sections/ProjectsSection.jsx';
 import ChatIASection from './sections/ChatIASection';
 import CreateNewProjectSection from './sections/CreateNewProjectSection';
 
