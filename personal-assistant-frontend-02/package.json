@@ -13,7 +13,12 @@
     "@emotion/styled": "^11.13.5",
     "@mui/icons-material": "^6.1.9",
     "@mui/material": "^6.1.9",
+    "@mui/x-charts": "^7.22.3",
+    "@mui/x-data-grid": "^7.22.3",
+    "@mui/x-date-pickers": "^7.22.3",
+    "@mui/x-tree-view": "^7.22.1",
     "axios": "^1.7.8",
+    "dayjs": "^1.11.13",
     "next": "^15.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
