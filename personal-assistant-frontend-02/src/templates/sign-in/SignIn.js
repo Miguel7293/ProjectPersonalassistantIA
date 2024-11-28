@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -18,10 +18,11 @@ import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import ForgotPassword from './ForgotPassword';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './CustomIcons';
-import AppTheme from '../shared-theme/AppTheme';
-import ColorModeSelect from '../shared-theme/ColorModeSelect';
+import AppTheme from '../../templates/shared-theme/AppTheme';
+import ColorModeSelect from '../../templates/shared-theme/ColorModeSelect';
 import api from '../../../utils/api';
 
+// Estilizado original
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -64,6 +65,7 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
+// Componente SignIn con diseño original
 export default function SignIn(props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,13 +83,13 @@ export default function SignIn(props) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError(null); // Resetear el error
+    setError(null);
     try {
       const response = await api.post('/api/v1/users/login', { email, password });
       if (response.data.ok) {
         localStorage.setItem('token', response.data.jwt);
         localStorage.setItem('username', response.data.user.nombre);
-        //router.push('/dashboard'); // Redirigir al dashboard
+        router.push('/dashboard'); // Redirigir al dashboard
       } else {
         setError('Invalid email or password');
       }
