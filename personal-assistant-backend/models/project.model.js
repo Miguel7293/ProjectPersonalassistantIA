@@ -51,4 +51,20 @@ const selectByUserId = async (User_ID) => {
     const { rows } = await db.query(query);
     return rows;
 };
+// En el archivo 'userProject.model.js' o similar
+
+export const UserProjectModel = {
+    insert: async (data) => {
+        const { User_ID, Project_ID, Role, Assignment_Date } = data;
+        const query = {
+            text: `INSERT INTO USER_PROJECT (User_ID, Project_ID, Role, Assignment_Date)
+                   VALUES ($1, $2, $3, $4) RETURNING *`,
+            values: [User_ID, Project_ID, Role, Assignment_Date],
+        };
+
+        const { rows } = await db.query(query);
+        return rows[0];  // Regresar el primer resultado (el registro insertado)
+    },
+};
+
 export const ProjectModel = { insert, selectById, selectByUserId, update, deleteProject };
