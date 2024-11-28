@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Typography, Button, Modal, TextField, Grid } from '@mui/material';
@@ -49,7 +51,7 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
         console.log('Datos recibidos de la API:', data);
   
         if (data.ok) {
-          setProjects(data.data);
+          setProjects(data.data); // Asegúrate de que la respuesta contiene un campo 'data' con los proyectos
         } else {
           console.error('Error desde el backend:', data.message);
           setError('No se pudieron obtener los proyectos.');
@@ -116,6 +118,7 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
 
   const today = new Date().toISOString().split('T')[0];
 
+  // Verifica si hay un error o si los proyectos aún están cargando
   if (loading) return <Typography>Cargando proyectos...</Typography>;
   if (error) return <Typography>{error}</Typography>;
 
@@ -251,8 +254,3 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
 };
 
 export default ProjectsSection;
-
-
-
-
-

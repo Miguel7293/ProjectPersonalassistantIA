@@ -67,7 +67,7 @@ const CreateProject = () => {
 
         if (userProjectResponse.data.ok) {
           setMessage('User added to the project successfully!');
-          router.push('/ProjectSection');  // Redirigir a la sección de proyectos
+          //router.push('/ProjectSection');  // Redirigir a la sección de proyectos /// CON FE OTRO DIA 
         } else {
           setMessage(`Error adding user to project: ${userProjectResponse.data.msg}`);
         }
