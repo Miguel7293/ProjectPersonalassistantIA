@@ -39,15 +39,13 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <Box flexGrow={1} p={3} bgcolor="background.default">
-        {/* Aquí eliminamos la sección que muestra los datos de localStorage */}
-
-        {/* Pasar userData como prop a los componentes */}
         {activeTab === 'dashboard' && <DashboardSection />}
         {activeTab === 'schedules' && <SchedulesSection />}
         {activeTab === 'projects' && <ProjectsSection userData={userData} />}
         {activeTab === 'chat' && <ChatIASection />}
         {activeTab === 'create' && <CreateNewProjectSection />}
-      </Box>
+      </Box>  
+
     </Box>
   );
 }

@@ -25,3 +25,5 @@ npm install --save-dev @types/react-big-calendar
 
 npm install react-dnd react-dnd-html5-backend
 
+npm install recharts
+npm install recharts

@@ -23,37 +23,43 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   ];
 
   return (
-    <Box
-      width={240}
-      bgcolor="primary.main"
-      color="white"
-      minHeight="100vh"
-      display="flex"
-      flexDirection="column"
-    >
-      <Typography variant="h5" align="center" py={2}>
-        Dashboard
-      </Typography>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItemButton
-            key={item.id}
-            selected={activeTab === item.id}
-            onClick={() => setActiveTab(item.id)}
-            sx={{
-              '&.Mui-selected': {
-                bgcolor: 'secondary.main',
-                color: 'white',
-              },
-            }}
-          >
-            <ListItemIcon sx={{ color: 'inherit' }}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        ))}
-      </List>
-    </Box>
+<Box
+  width={240}
+  bgcolor="background.paper" // Fondo oscuro en lugar de azul.
+  color="text.primary" // Texto claro, como gris/blanco.
+  minHeight="100vh"
+  display="flex"
+  flexDirection="column"
+>
+  <Typography variant="h5" align="center" py={2}>
+    Dashboard
+  </Typography>
+  <Divider />
+  <List>
+    {menuItems.map((item) => (
+      <ListItemButton
+        key={item.id}
+        selected={activeTab === item.id}
+        onClick={() => setActiveTab(item.id)}
+        sx={{
+          '&.Mui-selected': {
+            bgcolor: 'secondary.main', // Fondo rosa medio para seleccionado.
+            color: 'text.primary', // Texto claro en botón seleccionado.
+          },
+          '&:hover': {
+            bgcolor: 'primary.main', // Fondo azul al pasar el mouse.
+            color: 'white', // Texto blanco al hacer hover.
+          },
+        }}
+      >
+        <ListItemIcon sx={{ color: 'inherit' }}>{item.icon}</ListItemIcon>
+        <ListItemText primary={item.label} />
+      </ListItemButton>
+    ))}
+  </List>
+</Box>
+
+
   );
 };
 

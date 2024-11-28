@@ -32,13 +32,13 @@ const localizer = dateFnsLocalizer({
 });
 
 const EnviromentTask: React.FC = () => {
-  const [tasks, setTasks] = useState<any[]>([]); // Tareas guardadas en el backend
-  const [localTasks, setLocalTasks] = useState<any[]>([]); // Tareas temporales no guardadas
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add');
   const [currentTask, setCurrentTask] = useState<any>(null);
-  const [isTaskListOpen, setIsTaskListOpen] = useState(false); // Controla la visibilidad de la lista de tareas
+  const [isTaskListOpen, setIsTaskListOpen] = useState(false);
 
   const theme = useTheme();
 
@@ -65,11 +65,7 @@ const EnviromentTask: React.FC = () => {
       if (data.ok) setTasks(data.data);
       else console.error('Error fetching tasks:', data.message);
     } catch (err) {
-      if (err instanceof Error) {
-        console.error('Error al obtener las tareas:', err.message);
-      } else {
-        console.error('Error desconocido:', err);
-      }
+      console.error('Error al obtener las tareas:', err);
     }
   };
 
@@ -83,7 +79,7 @@ const EnviromentTask: React.FC = () => {
 
   const addLocalTask = () => {
     const newTask = {
-      id: `temp-${Date.now()}`, // ID temporal para tareas no guardadas
+      id: `temp-${Date.now()}`,
       title,
       description,
       start: startDate,
@@ -92,36 +88,28 @@ const EnviromentTask: React.FC = () => {
     setLocalTasks([...localTasks, newTask]);
     setIsDialogOpen(false);
   };
+
   const handleDeleteTask = async (task: any) => {
     try {
       const response = await fetch('http://localhost:5000/api/v1/task/task/operation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sqlQuery: 'DELETE',
-          Task_ID: task.id, // Asegúrate de enviar el ID de la tarea para eliminarla
-        }),
+        body: JSON.stringify({ sqlQuery: 'DELETE', Task_ID: task.id }),
       });
-  
+
       if (response.ok) {
-        // Si la tarea se elimina correctamente, actualizar la lista
         const updatedTasks = tasks.filter((t) => t.id !== task.id);
-        setTasks(updatedTasks); // Actualizar las tareas en el estado
+        setTasks(updatedTasks);
       } else {
         console.error('Error al eliminar la tarea');
       }
     } catch (err) {
-      if (err instanceof Error) {
-        console.error('Error al eliminar la tarea:', err.message);
-      } else {
-        console.error('Error desconocido:', err);
-      }
+      console.error('Error al eliminar la tarea:', err);
     }
   };
-  
+
   const saveAllTasks = async () => {
     try {
-      // Itera sobre cada tarea en la lista temporal y realiza la solicitud al backend
       for (const task of localTasks) {
         const response = await fetch('http://localhost:5000/api/v1/task/task/operation', {
           method: 'POST',
@@ -140,21 +128,14 @@ const EnviromentTask: React.FC = () => {
 
         if (!response.ok) {
           console.error(`Error al guardar la tarea: ${task.title}`);
-          continue; // Pasar a la siguiente tarea si hay un error
+          continue;
         }
       }
 
-      // Después de guardar todas las tareas, recargar la lista desde el backend
       await fetchTasks(projectId!);
-
-      // Limpiar tareas locales
       setLocalTasks([]);
     } catch (err) {
-      if (err instanceof Error) {
-        console.error('Error al guardar las tareas:', err.message);
-      } else {
-        console.error('Error desconocido:', err);
-      }
+      console.error('Error al guardar las tareas:', err);
     }
   };
 
@@ -179,13 +160,11 @@ const EnviromentTask: React.FC = () => {
         Enviroment Task Calendar
       </Typography>
 
-      <Typography variant="body1" sx={{ marginBottom: 2, color: theme.palette.text.primary }}>
-        Organiza tus tareas en el calendario y guarda todas las tareas pendientes con el botón "Guardar todas las tareas".
-      </Typography>
+
 
       <Calendar
         localizer={localizer}
-        events={[...tasks, ...localTasks]} // Mostrar tareas guardadas y temporales
+        events={[...tasks, ...localTasks]}
         startAccessor="start"
         endAccessor="end"
         selectable
@@ -196,50 +175,120 @@ const EnviromentTask: React.FC = () => {
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: '8px',
           backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
         }}
       />
-
-      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
-        <DialogTitle>{dialogMode === 'add' ? 'Agregar Tarea' : 'Editar Tarea'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Título"
-            fullWidth
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            label="Descripción"
-            fullWidth
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            label="Fecha de Inicio"
-            type="datetime-local"
-            fullWidth
-            value={startDate ? startDate.toISOString().slice(0, 16) : ''} // Ajustar a formato "YYYY-MM-DDTHH:MM"
-            onChange={(e) => setStartDate(new Date(e.target.value))}
-            margin="normal"
-          />
-          <TextField
-            label="Fecha de Fin"
-            type="datetime-local"
-            fullWidth
-            value={endDate ? endDate.toISOString().slice(0, 16) : ''} // Ajustar a formato "YYYY-MM-DDTHH:MM"
-            onChange={(e) => setEndDate(new Date(e.target.value))}
-            margin="normal"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-          <Button variant="contained" color="primary" onClick={addLocalTask}>
-            {dialogMode === 'add' ? 'Agregar' : 'Guardar'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+<Dialog
+  open={isDialogOpen}
+  onClose={() => setIsDialogOpen(false)}
+  PaperProps={{
+    sx: {
+      backgroundColor: "#000000", // Fondo oscuro sin gris
+      color: theme.palette.text.primary,               // Texto claro
+    },
+  }}
+>
+  <DialogTitle sx={{ color: theme.palette.text.primary }}>
+    {dialogMode === 'add' ? 'Agregar Tarea' : 'Editar Tarea'}
+  </DialogTitle>
+  <DialogContent>
+    <TextField
+      label="Título"
+      fullWidth
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      margin="normal"
+      InputProps={{
+        sx: {
+          backgroundColor: theme.palette.background.paper, // Fondo oscuro para los campos
+          color: theme.palette.text.primary,               // Texto claro
+        },
+      }}
+      InputLabelProps={{
+        sx: {
+          color: theme.palette.text.secondary,            // Etiqueta del campo
+        },
+      }}
+    />
+    <TextField
+      label="Descripción"
+      fullWidth
+      value={description}
+      onChange={(e) => setDescription(e.target.value)}
+      margin="normal"
+      InputProps={{
+        sx: {
+          backgroundColor: theme.palette.background.paper, // Fondo oscuro para los campos
+          color: theme.palette.text.primary,               // Texto claro
+        },
+      }}
+      InputLabelProps={{
+        sx: {
+          color: theme.palette.text.secondary,            // Etiqueta del campo
+        },
+      }}
+    />
+    <TextField
+      label="Fecha de Inicio"
+      type="datetime-local"
+      fullWidth
+      value={startDate ? startDate.toISOString().slice(0, 16) : ''}
+      onChange={(e) => setStartDate(new Date(e.target.value))}
+      margin="normal"
+      InputProps={{
+        sx: {
+          backgroundColor: theme.palette.background.paper, // Fondo oscuro
+          color: theme.palette.text.primary,
+        },
+      }}
+      InputLabelProps={{
+        sx: {
+          color: theme.palette.text.secondary,
+        },
+      }}
+    />
+    <TextField
+      label="Fecha de Fin"
+      type="datetime-local"
+      fullWidth
+      value={endDate ? endDate.toISOString().slice(0, 16) : ''}
+      onChange={(e) => setEndDate(new Date(e.target.value))}
+      margin="normal"
+      InputProps={{
+        sx: {
+          backgroundColor: theme.palette.background.paper, // Fondo oscuro
+          color: theme.palette.text.primary,
+        },
+      }}
+      InputLabelProps={{
+        sx: {
+          color: theme.palette.text.secondary,
+        },
+      }}
+    />
+  </DialogContent>
+  <DialogActions>
+    <Button
+      onClick={() => setIsDialogOpen(false)}
+      sx={{
+        color: theme.palette.text.secondary,
+      }}
+    >
+      Cancelar
+    </Button>
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={addLocalTask}
+      sx={{
+        backgroundColor: theme.palette.primary.main,
+        color: theme.palette.primary.contrastText,
+      }}
+    >
+      {dialogMode === 'add' ? 'Agregar' : 'Guardar'}
+    </Button>
+  </DialogActions>
+</Dialog>
 
       {localTasks.length > 0 && (
         <Button variant="contained" color="secondary" sx={{ marginTop: 2 }} onClick={saveAllTasks}>
@@ -257,37 +306,45 @@ const EnviromentTask: React.FC = () => {
       </Button>
 
       {isTaskListOpen && (
-  <Box sx={{ marginTop: 2 }}>
-    <List>
-      {[...tasks, ...localTasks].map((task) => (
-        <ListItem key={task.id}>
-          <ListItemText
-            primary={task.title}
-            secondary={`Descripción: ${task.description} | Inicio: ${formatDate(task.start)} | Fin: ${formatDate(task.end)}`}
-          />
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              color="primary"
-              size="small"
-              onClick={() => openEditDialog(task)} // Abrir el diálogo de edición
-            >
-              Modificar
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
-              onClick={() => handleDeleteTask(task)} // Eliminar tarea
-            >
-              Eliminar
-            </Button>
-          </Box>
-        </ListItem>
-      ))}
-    </List>
-  </Box>
-)}
+        <Box sx={{ marginTop: 2 }}>
+          <List>
+            {[...tasks, ...localTasks].map((task) => (
+              <ListItem
+                key={task.id}
+                sx={{
+                  backgroundColor: theme.palette.background.paper,
+                  borderRadius: 2,
+                  marginBottom: 1,
+                  padding: 2,
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+                }}
+              >
+                <ListItemText
+                  primary={task.title}
+                  secondary={`Descripción: ${task.description} | Inicio: ${formatDate(task.start)} | Fin: ${formatDate(task.end)}`}
+                  sx={{ color: theme.palette.text.primary }}
+                />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => openEditDialog(task)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleDeleteTask(task)}
+                  >
+                    Eliminar
+                  </Button>
+                </Box>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      )}
     </Box>
   );
 };

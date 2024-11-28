@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Typography, Button, Modal, TextField, Grid } from '@mui/material';
-import { Project } from './types'; // Asume que tienes una interfaz 'Project' en algún lugar
+import { Project } from './types';
 
-interface getData {
+interface GetData {
   userData: {
     token: string | null;
     username: string | null;
@@ -13,7 +13,7 @@ interface getData {
   };
 }
 
-const ProjectsSection: React.FC<getData> = ({ userData }) => {
+const ProjectsSection: React.FC<GetData> = ({ userData }) => {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
@@ -25,45 +25,34 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
   const [endDate, setEndDate] = useState<string>('');
 
   useEffect(() => {
-    console.log('Ejecutando useEffect...');
-    console.log('userData:', userData);
-  
     const fetchProjects = async () => {
       if (!userData?.id) {
-        console.error('El ID del usuario no está disponible.');
         setError('El ID del usuario no está disponible.');
         setLoading(false);
         return;
       }
-  
+
       try {
-        console.log('Realizando solicitud a la API con User_ID:', userData.id);
-  
         const response = await fetch('http://localhost:5000/api/v1/project/operation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sqlQuery: 'SELECT', User_ID: userData.id }),
         });
-  
-        console.log('Respuesta de la API recibida:', response);
-  
+
         const data = await response.json();
-        console.log('Datos recibidos de la API:', data);
-  
+
         if (data.ok) {
-          setProjects(data.data); // Asegúrate de que la respuesta contiene un campo 'data' con los proyectos
+          setProjects(data.data);
         } else {
-          console.error('Error desde el backend:', data.message);
           setError('No se pudieron obtener los proyectos.');
         }
       } catch (err) {
-        console.error('Error al realizar la solicitud:', err);
         setError('Ocurrió un error al cargar los proyectos.');
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchProjects();
   }, [userData]);
 
@@ -118,12 +107,11 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Verifica si hay un error o si los proyectos aún están cargando
   if (loading) return <Typography>Cargando proyectos...</Typography>;
   if (error) return <Typography>{error}</Typography>;
 
   return (
-    <Box>
+    <Box bgcolor="#121212" p={4} color="#E0E0E0">
       <Typography variant="h4" gutterBottom>
         Proyectos
       </Typography>
@@ -138,33 +126,44 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
             md={4}
             key={project.project_id}
             onClick={() => {
-              if (!userData || !userData.id) {
-                console.error('userData no está definido o falta el ID del usuario:', userData);
-                return; // Detén la ejecución si `userData` no es válido
-              }
-          
-              console.log('Almacenando datos en localStorage:', {
-                projectId: project.project_id,
-                userId: userData.id,
-              });
-          
+              if (!userData?.id) return;
               localStorage.setItem('projectId', project.project_id.toString());
               localStorage.setItem('userId', userData.id);
-              router.push('/EviromentTasks'); // Redirigir a la nueva página
+              router.push('/EviromentTasks');
             }}
-            sx={{ cursor: 'pointer' }}
+            sx={{
+              cursor: 'pointer',
+              '&:hover': {
+                boxShadow: '0 4px 20px rgba(255, 255, 255, 0.4)',
+              },
+            }}
           >
-        
             <Box
               border={1}
+              borderColor="#333"
               borderRadius={2}
               p={2}
               display="flex"
               flexDirection="column"
               justifyContent="space-between"
-              height="200px"
+              height="260px"
+              bgcolor="#1E1E1E"
             >
-              <Typography variant="h6">{project.name}</Typography>
+              {/* Imagen del proyecto */}
+              <Box
+                component="img"
+                src={project.image_url || '/icon_2.png'} // URL de imagen
+                alt={project.name}
+                sx={{
+                  width: '100%',
+                  height: '100px',
+                  objectFit: 'cover',
+                  borderRadius: 2,
+                }}
+              />
+              <Typography variant="h6" color="#FFF" mt={2}>
+                {project.name}
+              </Typography>
               <Typography variant="body2">Inicio: {new Date(project.start_date).toLocaleDateString()}</Typography>
               <Typography variant="body2">Fin: {new Date(project.end_date).toLocaleDateString()}</Typography>
 
@@ -206,7 +205,8 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
             left: '50%',
             transform: 'translate(-50%, -50%)',
             width: 400,
-            bgcolor: 'background.paper',
+            bgcolor: '#333',
+            color: '#FFF',
             boxShadow: 24,
             p: 4,
           }}
@@ -227,7 +227,7 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
             onChange={e => setStartDate(e.target.value)}
             sx={{ marginBottom: 2 }}
             InputLabelProps={{ shrink: true }}
-            inputProps={{ min: today }} // No permite fechas antes de hoy
+            inputProps={{ min: today }}
           />
           <TextField
             label="Fecha de Fin"
@@ -237,7 +237,7 @@ const ProjectsSection: React.FC<getData> = ({ userData }) => {
             onChange={e => setEndDate(e.target.value)}
             sx={{ marginBottom: 2 }}
             InputLabelProps={{ shrink: true }}
-            inputProps={{ min: startDate || today }} // No permite fechas antes de la de inicio o hoy
+            inputProps={{ min: startDate || today }}
           />
           <Box display="flex" justifyContent="space-between" mt={2}>
             <Button variant="outlined" onClick={handleCloseModal}>
