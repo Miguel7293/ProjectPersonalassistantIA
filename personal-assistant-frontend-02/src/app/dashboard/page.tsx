@@ -1,18 +1,12 @@
-'use client';
+import React from "react";
+import { ThemeProvider } from "@mui/material";
+import Dashboard from "./Dashboard";
+import theme from "./theme";
 
-import SignIn from './Dashboard';
-
-export default function DashBoardPage() {
+export default function Page() {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-      }}
-    >
-      <SignIn />
-    </div>
+    <ThemeProvider theme={theme}>
+      <Dashboard />
+    </ThemeProvider>
   );
 }

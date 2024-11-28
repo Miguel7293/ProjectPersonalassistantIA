@@ -88,7 +88,9 @@ export default function SignIn(props) {
       const response = await api.post('/api/v1/users/login', { email, password });
       if (response.data.ok) {
         localStorage.setItem('token', response.data.jwt);
-        localStorage.setItem('username', response.data.user.nombre);
+        localStorage.setItem('username', response.data.user.name);
+        localStorage.setItem('id', response.data.user.user_id);
+
         router.push('/dashboard'); // Redirigir al dashboard
       } else {
         setError('Invalid email or password');
