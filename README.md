@@ -137,5 +137,13 @@ npm install axios
 npm install -D tailwindcss postcss autoprefixer
 npx tailwindcss init -p
 
+------------------------MaterialUI............
 
-
+para el login
+npm install @mui/icons-material
+para el dashboard
+npm install @mui/x-charts
+npm install dayjs
+npm install @mui/x-date-pickers
+npm install @mui/x-data-grid
+npm install @mui/x-tree-view
