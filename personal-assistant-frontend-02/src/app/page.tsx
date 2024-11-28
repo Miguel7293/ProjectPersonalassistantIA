@@ -1,5 +1,5 @@
 import styles from "./page.module.css";
-import SignIn from '../templates/sign-in/SignIn.js';
+import SignIn from './sign-in/SignIn.jsx';
 
 export default function Home() {
   return (
