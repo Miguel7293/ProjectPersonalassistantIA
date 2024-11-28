@@ -8,13 +8,39 @@ const performOperation = async (req, res) => {
             return res.status(400).json({ ok: false, msg: 'sqlQuery is required' });
         }
 
+        // Validar y asegurar que las fechas están en el formato correcto
+        const formatDate = (date) => {
+            if (date) {
+                const parsedDate = new Date(date);
+                if (!isNaN(parsedDate)) {
+                    return parsedDate.toISOString().slice(0, 19).replace('T', ' '); // Formato: 'YYYY-MM-DD HH:mm:ss'
+                } else {
+                    return null; // Si la fecha no es válida
+                }
+            }
+            return null;
+        };
+
         let result;
         switch (sqlQuery.toUpperCase()) {
             case 'INSERT':
                 if (!Project_ID || !Title || !Start_Date) {
                     return res.status(400).json({ ok: false, msg: 'Missing required fields for INSERT' });
                 }
-                result = await TaskModel.insert({ Project_ID, Title, Description, Start_Date, End_Date, Due_Date, Status });
+                
+                const formattedStartDate = formatDate(Start_Date);
+                const formattedEndDate = formatDate(End_Date);
+                const formattedDueDate = formatDate(Due_Date);
+
+                result = await TaskModel.insert({
+                    Project_ID,
+                    Title,
+                    Description,
+                    Start_Date: formattedStartDate,
+                    End_Date: formattedEndDate,
+                    Due_Date: formattedDueDate,
+                    Status,
+                });
                 break;
 
             case 'SELECT':
@@ -28,7 +54,20 @@ const performOperation = async (req, res) => {
                 if (!Task_ID || !Title) {
                     return res.status(400).json({ ok: false, msg: 'Task_ID and Title are required for UPDATE' });
                 }
-                result = await TaskModel.update({ Task_ID, Title, Description, Start_Date, End_Date, Due_Date, Status });
+
+                const updatedStartDate = formatDate(Start_Date);
+                const updatedEndDate = formatDate(End_Date);
+                const updatedDueDate = formatDate(Due_Date);
+
+                result = await TaskModel.update({
+                    Task_ID,
+                    Title,
+                    Description,
+                    Start_Date: updatedStartDate,
+                    End_Date: updatedEndDate,
+                    Due_Date: updatedDueDate,
+                    Status,
+                });
                 break;
 
             case 'DELETE':
