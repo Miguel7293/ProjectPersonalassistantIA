@@ -9,7 +9,16 @@ import dayjs from 'dayjs';
 import 'react-date-range/dist/styles.css'; // Estilos predeterminados
 import 'react-date-range/dist/theme/default.css'; // Tema predeterminado
 
-const CreateProject = () => {
+interface GetData {
+  userData: {
+    token: string | null;
+    username: string | null;
+    id: string | null;
+  };
+}
+
+
+const CreateProject: React.FC<GetData> = ({ userData }) => {
   const [formData, setFormData] = useState({
     Name: '',
     Start_Date: '',
@@ -60,7 +69,7 @@ const CreateProject = () => {
 
         const userProjectPayload = {
           sqlQuery: 'INSERTRE',
-          User_ID: 2,
+          User_ID: userData.id,
           Project_ID: projectId,
         };
 
