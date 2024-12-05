@@ -1,25 +1,38 @@
-'use client';
-
-import { Box, Typography, Card, CardContent, Grid, TextField, Button, Avatar, Paper } from '@mui/material';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { Box, TextField, Button, Typography, Paper, Avatar } from '@mui/material';
 
 const ChatAISection = () => {
-  const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hello! How can I assist you today?' }
-  ]);
   const [userInput, setUserInput] = useState('');
-  
-  // Ref para controlar el desplazamiento hacia abajo automáticamente
-  const chatEndRef = useRef<null | HTMLDivElement>(null);
+  const [messages, setMessages] = useState<{ sender: string, text: string }[]>([
+    { sender: 'bot', text: '¡Hola! Soy tu asistente IA, ¿en qué puedo ayudarte hoy?' }, // Primer mensaje de la IA
+  ]);
+  const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Función para manejar el envío de mensajes
-  const handleSendMessage = () => {
-    if (userInput.trim() !== '') {
-      setMessages([
-        ...messages,
-        { sender: 'user', text: userInput },
-        { sender: 'bot', text: 'Let me think about that...' }
+  const handleSendMessage = async () => {
+    if (!userInput.trim()) return;
+
+    setLoading(true);
+
+    // Agregar el mensaje del usuario al estado
+    setMessages((prev) => [...prev, { sender: 'user', text: userInput }]);
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/v1/chat/message', {
+        prompt: userInput,
+      });
+
+      const botResponse = response.data.response;
+      setMessages((prev) => [...prev, { sender: 'bot', text: botResponse }]);
+    } catch (error) {
+      console.error('Error al enviar el mensaje:', error);
+      setMessages((prev) => [
+        ...prev,
+        { sender: 'bot', text: 'Error: No se pudo obtener respuesta.' }
       ]);
+    } finally {
+      setLoading(false);
       setUserInput('');
     }
   };
@@ -65,7 +78,7 @@ const ChatAISection = () => {
           overflowY: 'auto',
           marginBottom: '20px',
           display: 'flex',
-          flexDirection: 'column-reverse'
+          flexDirection: 'column-reverse',
         }}
       >
         {messages.map((message, index) => (
@@ -85,51 +98,48 @@ const ChatAISection = () => {
             </Typography>
           </Paper>
         ))}
-        <div ref={chatEndRef} /> {/* Esto es lo que ayuda a desplazarse automáticamente */}
+        <div ref={chatEndRef} />
       </Box>
 
       {/* Input de mensaje */}
-<Box sx={{ display: 'flex', alignItems: 'center', position: 'fixed', bottom: '20px', left: '20px', right: '20px' }}>
-  {/* Campo de texto para el mensaje */}
-  <TextField
-    fullWidth
-    value={userInput}
-    onChange={(e) => setUserInput(e.target.value)}
-    variant="outlined"
-    sx={{
-      backgroundColor: '#333',  // Fondo oscuro para el campo de texto
-      borderRadius: '20px',
-      '& .MuiInputBase-root': {
-        color: '#E0E0E0', // Texto claro en el campo de texto
-      },
-      '& .MuiOutlinedInput-root': {
-        borderColor: '#666', // Bordes más suaves
-      },
-    }}
-    placeholder="Escribe un mensaje..."
-  />
+      <Box sx={{ display: 'flex', alignItems: 'center', position: 'fixed', bottom: '20px', left: '20px', right: '20px' }}>
+        <TextField
+          fullWidth
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          variant="outlined"
+          sx={{
+            backgroundColor: '#333',
+            borderRadius: '20px',
+            '& .MuiInputBase-root': {
+              color: '#E0E0E0',
+            },
+            '& .MuiOutlinedInput-root': {
+              borderColor: '#666',
+            },
+          }}
+          placeholder="Escribe un mensaje..."
+        />
 
-  {/* Botón de Enviar */}
-  <Button
-    onClick={handleSendMessage}
-    sx={{
-      marginLeft: '10px',
-      backgroundColor: '#1976D2', // Color del botón
-      color: '#E0E0E0', // Color del texto en el botón
-      padding: '12px 20px', // Tamaño del botón
-      borderRadius: '50%',  // Hacerlo circular
-      '&:hover': {
-        backgroundColor: '#1565C0', // Hover para el botón
-      },
-    }}
-    aria-label="Enviar mensaje"  // Etiqueta accesible
-  >
-    <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
-      ➤
-    </Typography>
-  </Button>
-</Box>
-
+        <Button
+          onClick={handleSendMessage}
+          sx={{
+            marginLeft: '10px',
+            backgroundColor: '#1976D2',
+            color: '#E0E0E0',
+            padding: '12px 20px',
+            borderRadius: '50%',
+            '&:hover': {
+              backgroundColor: '#1565C0',
+            },
+          }}
+          aria-label="Enviar mensaje"
+        >
+          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
+            ➤
+          </Typography>
+        </Button>
+      </Box>
     </Box>
   );
 };

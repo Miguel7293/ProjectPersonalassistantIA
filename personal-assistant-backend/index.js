@@ -5,6 +5,8 @@ import { connectDB } from './database/connection.database.js';
 import userRouter from './routes/user.route.js';
 import taskRouter from './routes/task.route.js';
 import projectRouter from './routes/project.route.js';
+import chatRouter from './routes/chat.route.js';
+
 
 const app = express();
 
@@ -24,6 +26,7 @@ app.use(express.urlencoded({ extended: true })); // Habilitamos para recibir dat
 connectDB(); // Establecemos la conexión con la base de datos
 
 // Rutas
+app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/task', taskRouter);
 app.use('/api/v1/users', userRouter);  // Ruta para el login y registro
 app.use('/api/v1/project', projectRouter);

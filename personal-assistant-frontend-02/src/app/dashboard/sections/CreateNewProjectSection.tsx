@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Box, Button, TextField, Typography, Card, CardContent } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import api from '../../../../utils/api'; // Tu instancia de axios o API
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DateRange } from 'react-date-range'; // Importación de react-date-range
+import { enGB } from 'date-fns/locale'; // Idioma en inglés (puedes cambiarlo a español)
 import dayjs from 'dayjs';
+
+import 'react-date-range/dist/styles.css'; // Estilos predeterminados
+import 'react-date-range/dist/theme/default.css'; // Tema predeterminado
 
 const CreateProject = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +18,13 @@ const CreateProject = () => {
   });
 
   const [message, setMessage] = useState('');
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection',
+    },
+  ]);
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,99 +80,82 @@ const CreateProject = () => {
     }
   };
 
+  const handleDateChange = (ranges: any) => {
+    const { selection } = ranges;
+    setDateRange([selection]);
+
+    const startDate = dayjs(selection.startDate).format('YYYY-MM-DD');
+    const endDate = dayjs(selection.endDate).format('YYYY-MM-DD');
+
+    setFormData({
+      ...formData,
+      Start_Date: startDate,
+      End_Date: endDate,
+    });
+  };
+
   return (
-<Box
-  sx={{
-    minHeight: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.9)', // Fondo oscuro con transparencia
-    backgroundImage: `url('https://w.wallhaven.cc/full/4y/wallhaven-4yjwxl.png')`, // Tu imagen de fondo
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-  }}
->
-  <Card sx={{ maxWidth: 600, padding: 4, backgroundColor: 'rgba(30, 30, 30, 0.9)', color: 'white' }}>
-    <CardContent>
-      <Typography variant="h5" gutterBottom sx={{ color: 'white' }}>
-        Create New Project
-      </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.9)', // Fondo oscuro con transparencia
+        backgroundImage: `url('https://w.wallhaven.cc/full/4y/wallhaven-4yjwxl.png')`, // Tu imagen de fondo
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <Card sx={{ maxWidth: 600, padding: 4, backgroundColor: 'rgba(30, 30, 30, 0.9)', color: 'white' }}>
+        <CardContent>
+          <Typography variant="h5" gutterBottom sx={{ color: 'white' }}>
+            Create New Project
+          </Typography>
 
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Project Name"
-          variant="outlined"
-          fullWidth
-          required
-          name="Name"
-          value={formData.Name}
-          onChange={handleChange}
-          margin="normal"
-          InputLabelProps={{ style: { color: 'lightgray' } }}
-          InputProps={{
-            style: { color: 'white', borderColor: 'gray' },
-          }}
-        />
+          <form onSubmit={handleSubmit}>
+            <TextField
+              label="Project Name"
+              variant="outlined"
+              fullWidth
+              required
+              name="Name"
+              value={formData.Name}
+              onChange={handleChange}
+              margin="normal"
+              InputLabelProps={{ style: { color: 'lightgray' } }}
+              InputProps={{
+                style: { color: 'white', borderColor: 'gray' },
+              }}
+            />
 
-        <TextField
-          label="Project Description"
-          variant="outlined"
-          fullWidth
-          name="Description"
-          value={formData.Description}
-          onChange={handleChange}
-          margin="normal"
-          InputLabelProps={{ style: { color: 'lightgray' } }}
-          InputProps={{
-            style: { color: 'white', borderColor: 'gray' },
-          }}
-        />
+            <TextField
+              label="Project Description"
+              variant="outlined"
+              fullWidth
+              name="Description"
+              value={formData.Description}
+              onChange={handleChange}
+              margin="normal"
+              InputLabelProps={{ style: { color: 'lightgray' } }}
+              InputProps={{
+                style: { color: 'white', borderColor: 'gray' },
+              }}
+            />
 
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <Box display="flex" justifyContent="space-between" width="100%">
-            <Box width="48%">
-              <DatePicker
-                label="Start Date"
-                value={formData.Start_Date ? dayjs(formData.Start_Date) : null}
-                onChange={(newValue) =>
-                  setFormData({ ...formData, Start_Date: newValue ? newValue.format('YYYY-MM-DD') : '' })
-                }
-                disablePast
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    variant: 'outlined',
-                    margin: 'normal',
-                    InputLabelProps: { style: { color: 'lightgray' } },
-                    InputProps: { style: { color: 'white', borderColor: 'gray' } },
-                  },
-                }}
+            <Box display="flex" justifyContent="center" width="100%" marginTop={2}>
+              <DateRange
+                editableDateInputs={true}
+                onChange={handleDateChange}
+                moveRangeOnFirstSelection={false}
+                ranges={dateRange}
+                minDate={new Date()}
+                locale={enGB} // Configuración regional (puedes usar otro idioma)
+                rangeColors={['#FF4081']}
               />
             </Box>
-            <Box width="48%">
-              <DatePicker
-                label="End Date"
-                value={formData.End_Date ? dayjs(formData.End_Date) : null}
-                onChange={(newValue) =>
-                  setFormData({ ...formData, End_Date: newValue ? newValue.format('YYYY-MM-DD') : '' })
-                }
-                disablePast
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    variant: 'outlined',
-                    margin: 'normal',
-                    InputLabelProps: { style: { color: 'lightgray' } },
-                    InputProps: { style: { color: 'white', borderColor: 'gray' } },
-                  },
-                }}
-              />
-            </Box>
-          </Box>
-        </LocalizationProvider>
 
-        <Button
+            <Button
               type="submit"
               variant="contained"
               fullWidth
@@ -171,18 +163,16 @@ const CreateProject = () => {
             >
               Create Project
             </Button>
+          </form>
 
-      </form>
-
-      {message && (
-        <Typography color="error" variant="body2" sx={{ marginTop: 2, color: 'lightgray' }}>
-          {message}
-        </Typography>
-      )}
-    </CardContent>
-  </Card>
-</Box>
-
+          {message && (
+            <Typography color="error" variant="body2" sx={{ marginTop: 2, color: 'lightgray' }}>
+              {message}
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 
