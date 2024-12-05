@@ -18,21 +18,28 @@ BEGIN
 END $$;
 
 
-CREATE TABLE USERS(
+CREATE TABLE USERS( ------ AGREGAR STRING PARA URL --- DE LA IMAGEN
     User_ID SERIAL PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     Email VARCHAR(100) UNIQUE NOT NULL,
     Password VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE PROJECT (
+CREATE TABLE PROJECT ( --- AGREGAR STRING PARA URL ---- puntos maximos---- no puede haber proyecto con el mismo nombre
     Project_ID SERIAL PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     Start_Date DATE NOT NULL,
     End_Date DATE
 );
 
-CREATE TABLE TASK (----PRIORIDAD------ 
+--CREATE TABLE ESTIMATED_POINTS (
+--    Project_ID INT NOT NULL,
+--    Date DATE NOT NULL,
+--    Points INT,
+--    PRIMARY KEY (Project_ID, Date)
+--)
+
+CREATE TABLE TASK (----PRIORIDAD------ agregar puntos asignados-
     Task_ID SERIAL PRIMARY KEY,
     Project_ID INT NOT NULL,
     Title VARCHAR(100) NOT NULL,
@@ -40,9 +47,16 @@ CREATE TABLE TASK (----PRIORIDAD------
     Start_Date DATE NOT NULL,
     End_Date DATE,
     Due_Date DATE,
-    Status VARCHAR(20),
+    Status VARCHAR(20), --PROGRESS | COMPLETED | NOT COMPLETED | NOT STARTED | NOT ASSIGNED 
     FOREIGN KEY (Project_ID) REFERENCES PROJECT (Project_ID) ON DELETE CASCADE
 );
+
+--CREATE TABLE PROGRESS_TASK (
+--    Task_ID INT NOT NULL,
+--    Date DATE NOT NULL,
+--    Points_Completed INT,
+--    PRIMARY KEY (Task_ID, Date)
+--)
 
 CREATE TABLE NOTIFICATION (
     Notification_ID SERIAL PRIMARY KEY,
@@ -56,8 +70,8 @@ CREATE TABLE NOTIFICATION (
 CREATE TABLE USER_PROJECT (
     User_ID INT NOT NULL,
     Project_ID INT NOT NULL,
-    Role VARCHAR(50),
-    Assignment_Date DATE,
+    Role VARCHAR(50), --- ADMIN || COLABORATOR 
+    Assignment_Date DATE, 
     PRIMARY KEY (User_ID, Project_ID),
     FOREIGN KEY (User_ID) REFERENCES USERS (User_ID) ON DELETE CASCADE,
     FOREIGN KEY (Project_ID) REFERENCES PROJECT (Project_ID) ON DELETE CASCADE

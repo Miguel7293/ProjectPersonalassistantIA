@@ -152,7 +152,7 @@ const ProjectsSection: React.FC<GetData> = ({ userData }) => {
               {/* Imagen del proyecto */}
               <Box
                 component="img"
-                src={project.image_url || 'https://th.bing.com/th/id/R.63e1f5195771ebfe18376719aed0ad65?rik=9Qyq3JA%2bMCkiag&pid=ImgRaw&r=0'} // URL de imagen
+                src={'/icon_2.png'} // URL de imagen por agregar "project.image_url"
                 alt={project.name}
                 sx={{
                   width: '100%',
