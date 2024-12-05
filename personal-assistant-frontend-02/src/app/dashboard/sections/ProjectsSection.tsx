@@ -152,7 +152,7 @@ const ProjectsSection: React.FC<GetData> = ({ userData }) => {
               {/* Imagen del proyecto */}
               <Box
                 component="img"
-                src={project.image_url || '/icon_2.png'} // URL de imagen
+                src={'/icon_2.png'} // URL de imagen faltante "project.image_url || '/icon_2.png'"
                 alt={project.name}
                 sx={{
                   width: '100%',

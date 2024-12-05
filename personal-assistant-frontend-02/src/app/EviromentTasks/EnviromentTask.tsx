@@ -62,8 +62,14 @@ const EnviromentTask: React.FC = () => {
         body: JSON.stringify({ sqlQuery: 'SELECT', Project_ID: projectId }),
       });
       const data = await response.json();
-      if (data.ok) setTasks(data.data);
-      else console.error('Error fetching tasks:', data.message);
+      if (data.ok) {
+        // Map task_id to id for consistent access
+        const updatedTasks = data.data.map((task: any) => ({
+          ...task,
+          id: task.task_id, // Map task_id to id
+        }));
+        setTasks(updatedTasks);
+      } else console.error('Error fetching tasks:', data.message);
     } catch (err) {
       console.error('Error al obtener las tareas:', err);
     }
@@ -76,6 +82,8 @@ const EnviromentTask: React.FC = () => {
     setEndDate(slotInfo.end);
     setIsDialogOpen(true);
   };
+
+  
 
   const addLocalTask = () => {
     const newTask = {
@@ -144,8 +152,8 @@ const EnviromentTask: React.FC = () => {
     setCurrentTask(task);
     setTitle(task.title);
     setDescription(task.description);
-    setStartDate(task.start);
-    setEndDate(task.end);
+    setStartDate(new Date(task.start_date));
+    setEndDate(new Date(task.end_date));
     setIsDialogOpen(true);
   };
 
@@ -154,13 +162,45 @@ const EnviromentTask: React.FC = () => {
     return new Date(date).toLocaleString();
   };
 
+
+  const handleEditTask = async () => {
+    if (!currentTask) return;
+
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/task/task/operation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sqlQuery: 'UPDATE',
+          Task_ID: currentTask.id,
+          Title: title,
+          Description: description,
+          Start_Date: startDate?.toISOString(),
+          End_Date: endDate?.toISOString(),
+        }),
+      });
+
+      if (response.ok) {
+        const updatedTasks = tasks.map((task) =>
+          task.id === currentTask.id
+            ? { ...task, title, description, start_date: startDate, end_date: endDate }
+            : task
+        );
+        setTasks(updatedTasks);
+        setIsDialogOpen(false);
+      } else {
+        console.error('Error al actualizar la tarea');
+      }
+    } catch (err) {
+      console.error('Error al actualizar la tarea:', err);
+    }
+  };
+
   return (
     <Box padding={4}>
       <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main }}>
         Enviroment Task Calendar
       </Typography>
-
-
 
       <Calendar
         localizer={localizer}
@@ -321,7 +361,7 @@ const EnviromentTask: React.FC = () => {
               >
                 <ListItemText
                   primary={task.title}
-                  secondary={`Descripción: ${task.description} | Inicio: ${formatDate(task.start)} | Fin: ${formatDate(task.end)}`}
+                  secondary={`Descripción: ${task.description} | Inicio: ${formatDate(task.start_date)} | Fin: ${formatDate(task.end_date)}`}
                   sx={{ color: theme.palette.text.primary }}
                 />
                 <Box sx={{ display: 'flex', gap: 1 }}>
@@ -329,6 +369,7 @@ const EnviromentTask: React.FC = () => {
                     variant="outlined"
                     color="secondary"
                     onClick={() => openEditDialog(task)}
+
                   >
                     Editar
                   </Button>

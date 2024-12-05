@@ -7,7 +7,17 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 
-const CreateProject = () => {
+
+interface GetData {
+  userData: {
+    token: string | null;
+    username: string | null;
+    id: string | null;
+  };
+}
+
+
+const CreateProject: React.FC<GetData> = ({ userData }) => {
   const [formData, setFormData] = useState({
     Name: '',
     Start_Date: '',
@@ -51,7 +61,7 @@ const CreateProject = () => {
 
         const userProjectPayload = {
           sqlQuery: 'INSERTRE',
-          User_ID: 2,
+          User_ID: userData.id,
           Project_ID: projectId,
         };
 
