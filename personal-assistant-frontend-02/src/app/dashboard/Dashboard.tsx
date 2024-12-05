@@ -43,7 +43,7 @@ export default function Dashboard() {
         {activeTab === 'schedules' && <SchedulesSection />}
         {activeTab === 'projects' && <ProjectsSection userData={userData} />}
         {activeTab === 'chat' && <ChatIASection />}
-        {activeTab === 'create' && <CreateNewProjectSection />}
+        {activeTab === 'create' && <CreateNewProjectSection userData={userData}/>}
       </Box>  
 
     </Box>
