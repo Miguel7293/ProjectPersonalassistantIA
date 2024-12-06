@@ -45,7 +45,7 @@ CHAT IA
     -> APAREZCAN SUGERENCIAS DE PREGUNTAS
     -> QUE INTERACTUE CON LA BASE DE DATOS
         -> crear propms predefinidos para interactuar pro ahora en la creacion de proyectos y tareas (GEMINI O OPENIA)
-        -> IDENTIFIQUE QUE QUIERES CREAR UN PROYECTO O TAREA
+        -> IDENTIFIQUE QUE QUIERES CREAR UN PROYECTO O TAREA//espera
         -> QUE LO CREE 
         -> SUGERENCIAS ESTADISTICAS DE RENDIMIENTO (EN ESPERA - aun no)
         -> RECOMENDACIONES EN GENERAL (ESPERA aun no)
@@ -83,3 +83,8 @@ DASHBOARD
     -> En AJUSTAR CUENTA poder editar (imagen, contraseña, correo, nombre, o eliminar cuenta)
     -> saludo amigalbe de la IA (mostreo de last taeras pendientes)
     -> . . .  VASARNOS EN LA MAQUETA DEL FIGMA
+-----------------------------reparticion de trabajos hasta el dia 9 de diciembre para completar el spint 3----------
+miguel->Create PROJECT
+Roger ->Chat IA
+Paolo ->PROJECTS
+Yoel ->dashboard
