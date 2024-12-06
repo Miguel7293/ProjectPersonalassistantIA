@@ -1,26 +1,123 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Box, TextField, Button, Typography, Paper, Avatar } from '@mui/material';
+import { Box, TextField, Button, Typography, Paper, Avatar, CircularProgress } from '@mui/material';
+import { styled } from '@mui/system';
+import { IoSend } from 'react-icons/io5';
 
-const ChatAISection = () => {
+// Estilos personalizados sin pasar props innecesarios al DOM
+const ChatContainer = styled(Paper)(({ theme }) => ({
+  maxWidth: '800px',
+  margin: '20px auto',
+  padding: '20px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+  borderRadius: '16px',
+  height: '600px',
+  display: 'flex',
+  flexDirection: 'column',
+  backgroundColor: theme.palette.background.paper,
+}));
+
+const MessagesContainer = styled(Box)({
+  flex: 1,
+  overflowY: 'auto',
+  padding: '10px',
+  '&::-webkit-scrollbar': {
+    width: '8px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: '#f1f1f1',
+    borderRadius: '10px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    background: '#888',
+    borderRadius: '10px',
+  },
+});
+
+// El componente MessageBubble no pasa 'isUser' al DOM
+const MessageBubble = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isUser',  // No permitir que 'isUser' pase al DOM
+})<{ isUser?: boolean }>(({ isUser }) => ({
+  display: 'flex',
+  alignItems: 'flex-start',
+  marginBottom: '16px',
+  flexDirection: isUser ? 'row-reverse' : 'row',
+}));
+
+// El componente Message no pasa 'isUser' al DOM
+const Message = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isUser',  // No permitir que 'isUser' pase al DOM
+})<{ isUser?: boolean }>(({ isUser, theme }) => ({
+  maxWidth: '70%',
+  padding: '12px 16px',
+  borderRadius: '12px',
+  backgroundColor: isUser ? theme.palette.secondary.main : '#1E1E1E',
+  color: isUser ? 'white' : theme.palette.text.primary,
+  marginLeft: isUser ? '0' : '8px',
+  marginRight: isUser ? '8px' : '0',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  wordBreak: 'break-word',
+}));
+
+const InputContainer = styled(Box)({
+  display: 'flex',
+  gap: '10px',
+  padding: '16px 0 0',
+  borderTop: '1px solid #eee',
+});
+
+// Estilo para la lista de sugerencias verticales
+const SuggestionsContainer = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',  // Cambiar a columna para disposición vertical
+  gap: '10px',  // Espacio entre las sugerencias
+  padding: '10px 0',
+  maxHeight: '200px',  // Limitar la altura de las sugerencias
+  overflowY: 'auto',  // Desplazamiento si es necesario
+});
+
+// Estilo individual de cada botón de sugerencia
+const SuggestionButton = styled(Button)({
+  backgroundColor: '#808080',
+  color: '#fff',
+  '&:hover': {
+    backgroundColor: '#696969',
+  },
+  borderRadius: '12px',
+  padding: '8px 16px',
+  textTransform: 'none',
+  fontSize: '14px',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+});
+
+const ChatIASection = () => {
   const [userInput, setUserInput] = useState('');
   const [messages, setMessages] = useState<{ sender: string, text: string }[]>([
-    { sender: 'bot', text: '¡Hola! Soy tu asistente IA, ¿en qué puedo ayudarte hoy?' }, // Primer mensaje de la IA
+    { sender: 'bot', text: '¡Hola! Soy Lucy tu asistente IA, ¿en qué puedo ayudarte hoy?' },
   ]);
   const [loading, setLoading] = useState(false);
+  const [isFirstInteraction, setIsFirstInteraction] = useState(true);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSendMessage = async () => {
-    if (!userInput.trim()) return;
+  const suggestedMessages = [
+    '¿Cómo está el clima hoy?',
+    '¿Qué puedes hacer por mí?',
+    '¿Porque soy tan perfecto?',
+    '¿Porque Paolito se enojo este dia si solo lo dejamos plantado en una reunion que planificamos?',
+    'Muéstrame una imagen de un gato.',
+  ];
+
+  const handleSendMessage = async (message: string) => {
+    if (!message.trim()) return;
 
     setLoading(true);
+    setUserInput('');
 
-    // Agregar el mensaje del usuario al estado
-    setMessages((prev) => [...prev, { sender: 'user', text: userInput }]);
+    setMessages((prev) => [...prev, { sender: 'user', text: message }]);
 
     try {
       const response = await axios.post('http://localhost:5000/api/v1/chat/message', {
-        prompt: userInput,
+        prompt: message,
       });
 
       const botResponse = response.data.response;
@@ -33,11 +130,14 @@ const ChatAISection = () => {
       ]);
     } finally {
       setLoading(false);
-      setUserInput('');
     }
   };
 
-  // Efecto para desplazarse hacia abajo cuando haya un nuevo mensaje
+  const handleSuggestedMessageClick = (message: string) => {
+    handleSendMessage(message);
+    setIsFirstInteraction(false);
+  };
+
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -45,64 +145,62 @@ const ChatAISection = () => {
   }, [messages]);
 
   return (
-    <Box sx={{ padding: '20px', backgroundColor: '#121212', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Título */}
-      <Typography variant="h4" gutterBottom sx={{ color: '#E0E0E0' }}>
-        Chat with AI Assistant
+    <ChatContainer>
+      <Typography variant="h6" gutterBottom sx={{ borderBottom: '1px solid #eee', pb: 1 }}>
+        Lucy Assistant
       </Typography>
 
-      {/* Sección de Perfil */}
-      <Box sx={{ marginBottom: '30px', display: 'flex', alignItems: 'center' }}>
-        <Avatar
-          alt="User Avatar"
-          src="https://w.wallhaven.cc/full/4o/wallhaven-4o2w6l.jpg"
-          sx={{ width: 80, height: 80, marginRight: '20px' }}
-        />
-        <Box>
-          <Typography variant="h6" sx={{ color: '#E0E0E0' }}>
-            Lucy
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            IA Specialist
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* Área de Chat */}
-      <Box
-        sx={{
-          backgroundColor: '#1E1E1E',
-          padding: '20px',
-          borderRadius: '10px',
-          maxHeight: '60vh',
-          overflowY: 'auto',
-          marginBottom: '20px',
-          display: 'flex',
-          flexDirection: 'column-reverse',
-        }}
-      >
+      <MessagesContainer id="messages-container">
         {messages.map((message, index) => (
-          <Paper
-            key={index}
-            sx={{
-              backgroundColor: message.sender === 'user' ? '#3A3A3A' : '#2E2E2E',
-              padding: '10px',
-              marginBottom: '10px',
-              borderRadius: '8px',
-              alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
-              maxWidth: '80%',
-            }}
-          >
-            <Typography variant="body1" sx={{ color: '#E0E0E0' }}>
-              {message.text}
-            </Typography>
-          </Paper>
+          <MessageBubble key={index} isUser={message.sender === 'user'}>
+            <Avatar
+              sx={{
+                bgcolor: message.sender === 'user' ? '#FF4081' : '#f50057',
+                width: 32,
+                height: 32,
+              }}
+              src="https://w.wallhaven.cc/full/4o/wallhaven-4o2w6l.jpg"
+            />
+            <Message isUser={message.sender === 'user'}>
+              <Typography variant="body1">{message.text}</Typography>
+            </Message>
+          </MessageBubble>
         ))}
+        {loading && (
+          <MessageBubble isUser={false}>
+            <Avatar
+              sx={{
+                bgcolor: '#f50057',
+                width: 32,
+                height: 32,
+              }}
+              src="https://w.wallhaven.cc/full/4o/wallhaven-4o2w6l.jpg"
+            />
+            <Message isUser={false}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} />
+                <Typography>Typing...</Typography>
+              </Box>
+            </Message>
+          </MessageBubble>
+        )}
         <div ref={chatEndRef} />
-      </Box>
+      </MessagesContainer>
 
-      {/* Input de mensaje */}
-      <Box sx={{ display: 'flex', alignItems: 'center', position: 'fixed', bottom: '20px', left: '20px', right: '20px' }}>
+      {isFirstInteraction && (
+        <SuggestionsContainer>
+          {suggestedMessages.map((suggestion, index) => (
+            <SuggestionButton
+              key={index}
+              onClick={() => handleSuggestedMessageClick(suggestion)}
+            >
+              {suggestion}
+            </SuggestionButton>
+          ))}
+        </SuggestionsContainer>
+      )}
+
+      <InputContainer>
         <TextField
           fullWidth
           value={userInput}
@@ -120,28 +218,26 @@ const ChatAISection = () => {
           }}
           placeholder="Escribe un mensaje..."
         />
-
         <Button
-          onClick={handleSendMessage}
+          onClick={() => handleSendMessage(userInput)}
           sx={{
-            marginLeft: '10px',
-            backgroundColor: '#1976D2',
+            minWidth: '100px',
+            backgroundColor: '#FF4081',
             color: '#E0E0E0',
             padding: '12px 20px',
             borderRadius: '50%',
             '&:hover': {
-              backgroundColor: '#1565C0',
+              backgroundColor: '#FF5773',
             },
           }}
-          aria-label="Enviar mensaje"
+          disabled={!userInput.trim()}
+          endIcon={<IoSend />}
         >
-          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '20px' }}>
-            ➤
-          </Typography>
+          Send
         </Button>
-      </Box>
-    </Box>
+      </InputContainer>
+    </ChatContainer>
   );
 };
 
-export default ChatAISection;
+export default ChatIASection;
