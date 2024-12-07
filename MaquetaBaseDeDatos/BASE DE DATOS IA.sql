@@ -32,7 +32,7 @@ CREATE TABLE USERS (
 -- Tabla PROJECT
 CREATE TABLE PROJECT (
     Project_ID SERIAL PRIMARY KEY,
-    Name VARCHAR(100) NOT NULL UNIQUE, -- Restricción de nombre único
+    Name VARCHAR(100), -- Restricción de nombre único
     Start_Date DATE NOT NULL,
     End_Date DATE,
     Max_Points INT DEFAULT 0, -- Puntos máximos asignados

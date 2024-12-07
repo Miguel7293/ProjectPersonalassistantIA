@@ -1,11 +1,20 @@
 import { ProjectModel } from '../models/project.model.js';
-import { UserProjectModel } from '../models/project.model.js';  // Asegúrate de que este modelo maneje la relación
+import { UserProjectModel } from '../models/project.model.js';
 
 const performOperation = async (req, res) => {
     try {
         console.log('Request body:', req.body);
 
-        const { sqlQuery, Project_ID, User_ID, Name, Start_Date, End_Date, Description } = req.body;
+        const { 
+            sqlQuery, 
+            Project_ID, 
+            User_ID, 
+            Name, 
+            Start_Date, 
+            End_Date, 
+            Max_Points, 
+            Image_URL 
+        } = req.body;
 
         if (!sqlQuery) {
             return res.status(400).json({ ok: false, msg: 'sqlQuery is required' });
@@ -16,11 +25,26 @@ const performOperation = async (req, res) => {
         switch (sqlQuery.toUpperCase()) {
             case 'INSERT':
                 if (Name && Start_Date) {
-                    result = await ProjectModel.insert({ Name, Start_Date, End_Date });
-                    const newProjectId = result.project_id;
+                    result = await ProjectModel.insert({
+                        Name,
+                        Start_Date,
+                        End_Date,
+                        Max_Points: Max_Points || 0,
+                        Image_URL: Image_URL || 'Predeterminado'
+                    });
 
-                    // Devolver la respuesta exitosa con los datos del proyecto y terminar la función
-                    return res.json({ ok: true, data: { project_id: newProjectId, name: result.name, start_date: result.start_date, end_date: result.end_date } });
+                    const newProjectId = result.project_id;
+                    return res.json({ 
+                        ok: true, 
+                        data: { 
+                            project_id: newProjectId, 
+                            name: result.name, 
+                            start_date: result.start_date, 
+                            end_date: result.end_date,
+                            max_points: result.max_points,
+                            image_url: result.image_url
+                        } 
+                    });
                 } else {
                     return res.status(400).json({ ok: false, msg: 'Name and Start Date are required for INSERT' });
                 }
@@ -29,19 +53,17 @@ const performOperation = async (req, res) => {
                 if (!User_ID || !Project_ID) {
                     return res.status(400).json({ ok: false, msg: 'User_ID and Project_ID are required for INSERTRE' });
                 }
-
+                
                 const userProjectData = {
                     User_ID,
                     Project_ID,
                     Role: 'Admin',
                     Assignment_Date: new Date().toISOString().split('T')[0],
                 };
-
+                
                 result = await UserProjectModel.insert(userProjectData);
-
-                // Devolver la respuesta exitosa de la relación y terminar la función
                 return res.json({ ok: true, data: { User_ID, Project_ID } });
-
+                
             case 'SELECT':
                 if (User_ID) {
                     result = await ProjectModel.selectByUserId(User_ID);
@@ -57,7 +79,14 @@ const performOperation = async (req, res) => {
                 if (!Project_ID || !Name || !Start_Date) {
                     return res.status(400).json({ ok: false, msg: 'Project_ID, Name, and Start_Date are required for UPDATE' });
                 }
-                result = await ProjectModel.update({ Project_ID, Name, Start_Date, End_Date, Description });
+                result = await ProjectModel.update({
+                    Project_ID,
+                    Name,
+                    Start_Date,
+                    End_Date,
+                    Max_Points: Max_Points || 0,
+                    Image_URL: Image_URL || 'Predeterminado'
+                });
                 return res.json({ ok: true, data: result });
 
             case 'DELETE':
@@ -72,7 +101,6 @@ const performOperation = async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        // Verifica si las cabeceras ya fueron enviadas
         if (!res.headersSent) {
             res.status(500).json({ ok: false, msg: 'Server error', error: error.message });
         }
