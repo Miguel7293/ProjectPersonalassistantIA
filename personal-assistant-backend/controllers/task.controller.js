@@ -2,7 +2,7 @@ import { TaskModel } from '../models/task.model.js';
 
 const performOperation = async (req, res) => {
     try {
-        const { sqlQuery, Task_ID, Project_ID, Title, Description, Start_Date, End_Date, Due_Date, Status } = req.body;
+        const { sqlQuery, Task_ID, Project_ID, Title, Description, Start_Date, End_Date, Due_Date, Status, Priority } = req.body;
 
         if (!sqlQuery) {
             return res.status(400).json({ ok: false, msg: 'sqlQuery is required' });
@@ -27,11 +27,14 @@ const performOperation = async (req, res) => {
                 if (!Project_ID || !Title || !Start_Date) {
                     return res.status(400).json({ ok: false, msg: 'Missing required fields for INSERT' });
                 }
-                
+
+                // Asignar un valor por defecto a Priority si no se pasa
+                const taskPriority = Priority || 'LOW';  // Valor por defecto si no se pasa
+
                 const formattedStartDate = formatDate(Start_Date);
                 const formattedEndDate = formatDate(End_Date);
                 const formattedDueDate = formatDate(Due_Date);
-
+            
                 result = await TaskModel.insert({
                     Project_ID,
                     Title,
@@ -40,6 +43,7 @@ const performOperation = async (req, res) => {
                     End_Date: formattedEndDate,
                     Due_Date: formattedDueDate,
                     Status,
+                    Priority: taskPriority,  // Usar Priority correctamente
                 });
                 break;
 
@@ -67,6 +71,7 @@ const performOperation = async (req, res) => {
                     End_Date: updatedEndDate,
                     Due_Date: updatedDueDate,
                     Status,
+                    Priority,
                 });
                 break;
 
