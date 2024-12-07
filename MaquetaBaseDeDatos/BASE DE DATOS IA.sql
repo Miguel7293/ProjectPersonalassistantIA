@@ -1,11 +1,13 @@
+-- Eliminar la base de datos existente (si existe)
+DROP DATABASE IF EXISTS DB_IA_ASSISTANT;
 
-DROP DATABASE DB_IA_ASSITANT;
+-- Crear la base de datos
+CREATE DATABASE DB_IA_ASSISTANT;
 
-CREATE DATABASE DB_IA_ASSITANT;
+-- Usar la nueva base de datos
+\c DB_IA_ASSISTANT;
 
-
-------- ELIMINAR TODAS LAS TABLAS --------
-
+-- Eliminar todas las tablas existentes (asegurar reinicio limpio)
 DO $$ 
 DECLARE
     tabla RECORD;
@@ -17,29 +19,37 @@ BEGIN
     END LOOP;
 END $$;
 
-
-CREATE TABLE USERS( ------ AGREGAR STRING PARA URL --- DE LA IMAGEN
+-- Tabla USERS
+CREATE TABLE USERS (
     User_ID SERIAL PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     Email VARCHAR(100) UNIQUE NOT NULL,
-    Password VARCHAR(100) NOT NULL
+    Password VARCHAR(100) NOT NULL,
+    Image_URL TEXT, -- URL para la imagen del usuario
+    unique_code CHAR(12) UNIQUE NOT NULL DEFAULT CONCAT('USR', LPAD(CAST(nextval('users_user_id_seq') AS TEXT), 8, '0')) -- Código único generado
 );
 
-CREATE TABLE PROJECT ( --- AGREGAR STRING PARA URL ---- puntos maximos---- no puede haber proyecto con el mismo nombre
+-- Tabla PROJECT
+CREATE TABLE PROJECT (
     Project_ID SERIAL PRIMARY KEY,
-    Name VARCHAR(100) NOT NULL,
+    Name VARCHAR(100) NOT NULL UNIQUE, -- Restricción de nombre único
     Start_Date DATE NOT NULL,
-    End_Date DATE
+    End_Date DATE,
+    Max_Points INT DEFAULT 0, -- Puntos máximos asignados
+    Image_URL TEXT -- URL para la imagen del proyecto
 );
 
---CREATE TABLE ESTIMATED_POINTS (
---    Project_ID INT NOT NULL,
---    Date DATE NOT NULL,
---    Points INT,
---    PRIMARY KEY (Project_ID, Date)
---)
+-- Tabla ESTIMATED_POINTS
+CREATE TABLE ESTIMATED_POINTS (
+    Project_ID INT NOT NULL,
+    Date DATE NOT NULL,
+    Points INT,
+    PRIMARY KEY (Project_ID, Date),
+    FOREIGN KEY (Project_ID) REFERENCES PROJECT (Project_ID) ON DELETE CASCADE
+);
 
-CREATE TABLE TASK (----PRIORIDAD------ agregar puntos asignados-
+-- Tabla TASK
+CREATE TABLE TASK (
     Task_ID SERIAL PRIMARY KEY,
     Project_ID INT NOT NULL,
     Title VARCHAR(100) NOT NULL,
@@ -47,17 +57,22 @@ CREATE TABLE TASK (----PRIORIDAD------ agregar puntos asignados-
     Start_Date DATE NOT NULL,
     End_Date DATE,
     Due_Date DATE,
-    Status VARCHAR(20), --PROGRESS | COMPLETED | NOT COMPLETED | NOT STARTED | NOT ASSIGNED 
+    Status VARCHAR(20), -- PROGRESS | COMPLETED | NOT COMPLETED | NOT STARTED | NOT ASSIGNED
+    Priority VARCHAR(20), -- LOW | MEDIUM | HIGH
+    Assigned_Points INT DEFAULT 0, -- Puntos asignados
     FOREIGN KEY (Project_ID) REFERENCES PROJECT (Project_ID) ON DELETE CASCADE
 );
 
---CREATE TABLE PROGRESS_TASK (
---    Task_ID INT NOT NULL,
---    Date DATE NOT NULL,
---    Points_Completed INT,
---    PRIMARY KEY (Task_ID, Date)
---)
+-- Tabla PROGRESS_TASK
+CREATE TABLE PROGRESS_TASK (
+    Task_ID INT NOT NULL,
+    Date DATE NOT NULL,
+    Points_Completed INT,
+    PRIMARY KEY (Task_ID, Date),
+    FOREIGN KEY (Task_ID) REFERENCES TASK (Task_ID) ON DELETE CASCADE
+);
 
+-- Tabla NOTIFICATION
 CREATE TABLE NOTIFICATION (
     Notification_ID SERIAL PRIMARY KEY,
     Project_ID INT NOT NULL,
@@ -67,16 +82,18 @@ CREATE TABLE NOTIFICATION (
     FOREIGN KEY (Project_ID) REFERENCES PROJECT (Project_ID) ON DELETE CASCADE
 );
 
+-- Tabla USER_PROJECT
 CREATE TABLE USER_PROJECT (
     User_ID INT NOT NULL,
     Project_ID INT NOT NULL,
-    Role VARCHAR(50), --- ADMIN || COLABORATOR 
-    Assignment_Date DATE, 
+    Role VARCHAR(50), -- ADMIN | COLLABORATOR
+    Assignment_Date DATE,
     PRIMARY KEY (User_ID, Project_ID),
     FOREIGN KEY (User_ID) REFERENCES USERS (User_ID) ON DELETE CASCADE,
     FOREIGN KEY (Project_ID) REFERENCES PROJECT (Project_ID) ON DELETE CASCADE
 );
 
+-- Tabla USER_NOTIFICATION
 CREATE TABLE USER_NOTIFICATION (
     User_ID INT NOT NULL,
     Notification_ID INT NOT NULL,
@@ -86,6 +103,7 @@ CREATE TABLE USER_NOTIFICATION (
     FOREIGN KEY (Notification_ID) REFERENCES NOTIFICATION (Notification_ID) ON DELETE CASCADE
 );
 
+-- Tabla USER_TASK
 CREATE TABLE USER_TASK (
     User_ID INT NOT NULL,
     Task_ID INT NOT NULL,

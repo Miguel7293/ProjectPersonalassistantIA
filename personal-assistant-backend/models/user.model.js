@@ -1,9 +1,10 @@
 import { db } from '../database/connection.database.js';
 
-const create = async ({ name, email, password }) => {
+const create = async ({ name, email, password, unique_code, image_url }) => {
     const query = {
-        text: 'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
-        values: [name, email, password]
+        text: `INSERT INTO users (name, email, password, unique_code, image_url)
+               VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        values: [name, email, password, unique_code, image_url]
     };
     const { rows } = await db.query(query);
     return rows[0];
@@ -17,17 +18,30 @@ const findOneByEmail = async (email) => {
 
     try {
         const { rows } = await db.query(query);
-        console.log('Resultado de la consulta:', rows);
-        return rows[0];  // Devuelve el primer usuario si existe
+        return rows[0];
     } catch (err) {
-        console.error('Error al ejecutar la consulta:', err);
+        console.error('Database query error:', err);
         throw new Error('Database error');
     }
 };
 
+const findOneByUniqueCode = async (unique_code) => {
+    const query = {
+        text: 'SELECT * FROM users WHERE unique_code = $1',
+        values: [unique_code]
+    };
+
+    try {
+        const { rows } = await db.query(query);
+        return rows[0];
+    } catch (err) {
+        console.error('Database query error:', err);
+        throw new Error('Database error');
+    }
+};
 
 export const UserModel = {
     create,
-    findOneByEmail
+    findOneByEmail,
+    findOneByUniqueCode
 };
- 
