@@ -40,13 +40,13 @@
 ---
 
 ### **Projects**
-- **Días Restantes:** Visualizar con animaciones.
-- **Tarjetas Animadas:** Cambiar a estadísticas tras 2 segundos (maqueta requerida).
-- **Ordenar Proyectos:** Implementar `ORDER BY` con criterios:
+- **Días Restantes:** Visualizar con animaciones. COMPLETADO
+- **Tarjetas Animadas:** Cambiar a estadísticas tras 2 segundos (maqueta requerida). COMPLETADO
+- **Ordenar Proyectos:** Implementar `ORDER BY` con criterios: COMPLETADO
   - Nombre.
   - Recientes.
   - Más cercanos a finalizar.
-- **Edición:**
+- **Edición:**  COMPLETADO
   - Iconos: Cambiar cadena `"string"` a `"url"`.
   - Manejo de fechas.
   - Gestión de colaboradores.

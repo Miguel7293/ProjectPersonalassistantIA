@@ -107,4 +107,53 @@ const performOperation = async (req, res) => {
     }
 };
 
-export const ProjectController = { performOperation };
+const getCollaboratorsByProjectId = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        if (!projectId) {
+            return res.status(400).json({ ok: false, msg: 'Project ID is required' });
+        }
+
+        const collaborators = await UserProjectModel.getCollaboratorsByProjectId(projectId);
+
+        return res.status(200).json({ ok: true, data: collaborators });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ ok: false, msg: 'Server error', error: error.message });
+    }
+}
+
+// Agregar nuevos colaboradores
+const addCollaborator = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const { email, uniqueCode } = req.body;
+
+        if (!projectId || (!email && !uniqueCode)) {
+            return res.status(400).json({ ok: false, msg: 'Project ID and either Email or Unique Code are required' });
+        }
+
+        const user = await UserProjectModel.findByEmailOrUniqueCode(email, uniqueCode);
+
+        if (!user) {
+            return res.status(404).json({ ok: false, msg: 'User not found' });
+        }
+
+        const userProjectData = {
+            User_ID: user.user_id,
+            Project_ID: projectId,
+            Role: 'COLLABORATOR',
+            Assignment_Date: new Date().toISOString().split('T')[0],
+        };
+
+        const result = await UserProjectModel.insert(userProjectData);
+
+        return res.status(201).json({ ok: true, data: result });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ ok: false, msg: 'Server error', error: error.message });
+    }
+}
+
+export const ProjectController = { performOperation, getCollaboratorsByProjectId, addCollaborator };

@@ -74,6 +74,33 @@ export const UserProjectModel = {
         const { rows } = await db.query(query);
         return rows[0];  // Regresar el primer resultado (el registro insertado)
     },
+
+    findByEmailOrUniqueCode: async (email, uniqueCode) => {
+        const query = {
+            text: `
+                SELECT * 
+                FROM USERS 
+                WHERE Email = $1 OR unique_code = $2`,
+            values: [email, uniqueCode],
+        };
+
+        const { rows } = await db.query(query);
+        return rows[0]; // Regresar el usuario encontrado
+    },
+
+    getCollaboratorsByProjectId: async (projectId) => {
+        const query = {
+            text: `
+                SELECT U.Name, U.Email, U.Image_URL, U.unique_code
+                FROM USERS U
+                INNER JOIN USER_PROJECT UP ON U.User_ID = UP.User_ID
+                WHERE UP.Project_ID = $1 AND UP.Role = 'COLLABORATOR'`,
+            values: [projectId],
+        };
+
+        const { rows } = await db.query(query);
+        return rows; // Regresar todos los colaboradores
+    },
 };
 
 export const ProjectModel = { insert, selectById, selectByUserId, update, deleteProject };
