@@ -4,6 +4,14 @@ import { Box, TextField, Button, Typography, Paper, Avatar, CircularProgress } f
 import { styled } from '@mui/system';
 import { IoSend } from 'react-icons/io5';
 
+interface GetData {
+  userData: {
+    token: string | null;
+    username: string | null;
+    id: string | null;
+  };
+}
+
 // Estilos personalizados sin pasar props innecesarios al DOM
 const ChatContainer = styled(Paper)(({ theme }) => ({
   maxWidth: '800px',
@@ -90,20 +98,39 @@ const SuggestionButton = styled(Button)({
   boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
 });
 
-const ChatIASection = () => {
+// Definir las instrucciones en una variable separada
+const INSTRUCTIONS = `
+  Refierete a ti mismo como Lucy. Eres mi IA e interactúas con el usuario.
+  Estas son instrucciones claras y deben respetarse a lo largo de la conversación:
+  1. Serás amable en toda ocasión.
+  2. Si el usuario menciona algo como "quiero hacer un proyecto" o "quiero programar una proyecto", 
+     lo ayudarás solicitando tres datos: 
+     - "fecha de inicio y fin", 
+     - "título", 
+     - "descripción". 
+  Una vez que el usuario proporcione esos tres datos, responderás en formato JSON como:
+  {"startDate": "2025-01-10", "endDate": "2025-03-02", "title": "Proyecto de trabajo", "description": "Ganar dinero"}.
+  Si no se completan los tres datos, solicitarás los faltantes y solo después enviarás el JSON.
+
+  Inicia la conversación con un saludo amable y presentándote.
+
+  
+
+`;
+
+const ChatIASection: React.FC<GetData> = ({ userData }) => {
   const [userInput, setUserInput] = useState('');
-  const [messages, setMessages] = useState<{ sender: string, text: string }[]>([
-    { sender: 'bot', text: '¡Hola! Soy Lucy tu asistente IA, ¿en qué puedo ayudarte hoy?' },
-  ]);
+  const [messages, setMessages] = useState<{ sender: string, text: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [isFirstInteraction, setIsFirstInteraction] = useState(true);
+  const [hasSentInitialMessage, setHasSentInitialMessage] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const suggestedMessages = [
     '¿Cómo está el clima hoy?',
     '¿Qué puedes hacer por mí?',
     '¿Porque soy tan perfecto?',
-    '¿Porque Paolito se enojo este dia si solo lo dejamos plantado en una reunion que planificamos?',
+    '¿Porque Paolito se enojo este día si solo lo dejamos plantado en una reunión que planificamos?',
     'Muéstrame una imagen de un gato.',
   ];
 
@@ -116,8 +143,11 @@ const ChatIASection = () => {
     setMessages((prev) => [...prev, { sender: 'user', text: message }]);
 
     try {
+      console.log('Enviando mensaje con ID de usuario:', userData.id);  // Mostrar el ID del usuario antes de enviarlo
       const response = await axios.post('http://localhost:5000/api/v1/chat/message', {
         prompt: message,
+        user_id: userData.id,  // Incluyendo el ID del usuario en la solicitud
+        token: userData.token,  // Usando el token para autenticar la solicitud
       });
 
       const botResponse = response.data.response;
@@ -137,6 +167,27 @@ const ChatIASection = () => {
     handleSendMessage(message);
     setIsFirstInteraction(false);
   };
+
+  useEffect(() => {
+    if (hasSentInitialMessage) return;
+
+    const sendInitialMessage = async () => {
+      try {
+        const response = await axios.post('http://localhost:5000/api/v1/chat/message', {
+          prompt: INSTRUCTIONS,  // Enviar las instrucciones separadas
+          user_id: userData.id,  // Incluyendo el ID del usuario
+          token: userData.token,  // Usando el token
+        });
+        const botResponse = response.data.response;
+        setMessages([{ sender: 'bot', text: botResponse }]); // Inicia solo con el mensaje inicial
+        setHasSentInitialMessage(true);  // Marca que el mensaje ya fue enviado
+      } catch (error) {
+        console.error('Error al enviar el mensaje predeterminado:', error);
+      }
+    };
+
+    sendInitialMessage();
+  }, [userData, hasSentInitialMessage]);
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -168,74 +219,42 @@ const ChatIASection = () => {
         ))}
         {loading && (
           <MessageBubble isUser={false}>
-            <Avatar
-              sx={{
-                bgcolor: '#f50057',
-                width: 32,
-                height: 32,
-              }}
-              src="https://w.wallhaven.cc/full/4o/wallhaven-4o2w6l.jpg"
-            />
-            <Message isUser={false}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CircularProgress size={20} />
-                <Typography>Typing...</Typography>
-              </Box>
-            </Message>
+            <CircularProgress size={24} />
           </MessageBubble>
         )}
         <div ref={chatEndRef} />
       </MessagesContainer>
 
+      {!isFirstInteraction && (
+        <InputContainer>
+          <TextField
+            label="Escribe tu mensaje..."
+            variant="outlined"
+            fullWidth
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(userInput)}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => handleSendMessage(userInput)}
+            sx={{ padding: '16px', minWidth: '50px' }}
+          >
+            <IoSend />
+          </Button>
+        </InputContainer>
+      )}
+
       {isFirstInteraction && (
         <SuggestionsContainer>
-          {suggestedMessages.map((suggestion, index) => (
-            <SuggestionButton
-              key={index}
-              onClick={() => handleSuggestedMessageClick(suggestion)}
-            >
-              {suggestion}
+          {suggestedMessages.map((msg, index) => (
+            <SuggestionButton key={index} onClick={() => handleSuggestedMessageClick(msg)}>
+              {msg}
             </SuggestionButton>
           ))}
         </SuggestionsContainer>
       )}
-
-      <InputContainer>
-        <TextField
-          fullWidth
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          variant="outlined"
-          sx={{
-            backgroundColor: '#333',
-            borderRadius: '20px',
-            '& .MuiInputBase-root': {
-              color: '#E0E0E0',
-            },
-            '& .MuiOutlinedInput-root': {
-              borderColor: '#666',
-            },
-          }}
-          placeholder="Escribe un mensaje..."
-        />
-        <Button
-          onClick={() => handleSendMessage(userInput)}
-          sx={{
-            minWidth: '100px',
-            backgroundColor: '#FF4081',
-            color: '#E0E0E0',
-            padding: '12px 20px',
-            borderRadius: '50%',
-            '&:hover': {
-              backgroundColor: '#FF5773',
-            },
-          }}
-          disabled={!userInput.trim()}
-          endIcon={<IoSend />}
-        >
-          Send
-        </Button>
-      </InputContainer>
     </ChatContainer>
   );
 };

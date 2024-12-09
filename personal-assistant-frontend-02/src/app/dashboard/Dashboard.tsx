@@ -42,10 +42,9 @@ export default function Dashboard() {
         {activeTab === 'dashboard' && <DashboardSection />}
         {activeTab === 'schedules' && <SchedulesSection />}
         {activeTab === 'projects' && <ProjectsSection userData={userData} />}
-        {activeTab === 'chat' && <ChatIASection />}
-        {activeTab === 'create' && <CreateNewProjectSection userData={userData}/>}
+        {activeTab === 'chat' && <ChatIASection userData={userData} />} {/* Aquí pasamos userData */}
+        {activeTab === 'create' && <CreateNewProjectSection userData={userData} />}
       </Box>  
-
     </Box>
   );
 }
