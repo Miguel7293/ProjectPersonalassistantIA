@@ -10,6 +10,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
 // Variable para almacenar el contexto de la conversación
 let conversationHistory = [];
+let userProjectsData = [];  // Variable global para almacenar los proyectos y tareas de usuario
 
 export const ChatController = {
   sendMessage: async (req, res) => {
@@ -23,18 +24,19 @@ export const ChatController = {
 
       console.log('ID de usuario recibido:', user_id);
       
-      
-      const queryResult = await showUserProjectsAndTasks(user_id);  
-      console.log('Resultados de las tareas del usuario:', queryResult);  // Para ver los datos
-
+      // Si no se ha consultado antes, ejecutamos la consulta
+      if (userProjectsData.length === 0) {
+        userProjectsData = await showUserProjectsAndTasks(user_id);  
+        console.log('Resultados de las tareas del usuario:', userProjectsData);  // Para ver los datos
+      }
 
       // Construir el contexto desde el historial
       const context = conversationHistory.map((msg) => {
         return `Tú: ${msg.content}\nIA: ${msg.response}`;
       }).join("\n");
 
-      // Agregar el nuevo mensaje al contexto
-      const fullPrompt = `Esta es la conversación hasta ahora:\n${context}\n\nTú: ${prompt}\nIA: `;
+      // Inicializar el fullPrompt con las instrucciones y los datos de proyectos
+      const fullPrompt = `Estos son mis datos de proyectos y tareas que tengo hasta ahora: ${JSON.stringify(userProjectsData)}. Puedes revisarlos y si en algún momento te menciono algo como revisar mis tareas o proyectos, me consultes de cuál se trata y me des consejos solo basándote en los datos que te di.\n\nEsta es la conversación hasta ahora:\n${context}\n\nTú: ${prompt}\nIA: `;
 
       console.log('Prompt completo enviado a la IA:', fullPrompt);
 
@@ -136,25 +138,25 @@ async function createUserProjectRelationship(user_id, project_id) {
   await UserProjectModel.insert(userProjectData);
 }
 
-
 // Función para realizar la consulta y mostrar el resultado en el log
 async function showUserProjectsAndTasks(user_id) {
   try {
     // Consulta para obtener los proyectos asignados al usuario
-    const projectsResult = await db.query(`
-      SELECT * FROM USER_PROJECT WHERE User_ID = $1;
-    `, [user_id]);
+    const projectsResult = await db.query(
+      `SELECT * FROM USER_PROJECT WHERE User_ID = $1;`, 
+      [user_id]
+    );
 
     // Si no hay proyectos, devuelve un mensaje
     if (projectsResult.rows.length === 0) {
       console.log('No se encontraron proyectos para este usuario.');
-      return;
+      return [];
     }
 
     // Variable para almacenar los proyectos y sus tareas
     const userProjectsWithTasks = [];
 
-    // Crear un array de promesas para obtener las tareas de cada proyecto en paralelo
+    // Crear un array de promesas para obtener los detalles de los proyectos y las tareas en paralelo
     const tasksPromises = projectsResult.rows.map(async (project) => {
       console.log('Proyecto:', project);  // Verifica que solo haya un proyecto por vez
 
@@ -164,24 +166,28 @@ async function showUserProjectsAndTasks(user_id) {
         return { Project: project, Tasks: [] };
       }
 
-      // Verifica si ya se han consultado las tareas para este proyecto
-      if (userProjectsWithTasks.some(p => p.Project.project_id === project_id)) {
-        console.log(`Tareas ya recuperadas para el Project_ID: ${project_id}`);
-        return; // No vuelve a hacer la consulta
-      }
+      // 1. Consulta para obtener los detalles del proyecto
+      const projectDetailsResult = await db.query(
+        `SELECT * FROM PROJECT WHERE Project_ID = $1;`, 
+        [project_id]
+      );
 
-      console.log('Consultando tareas para Project_ID:', project_id);
+      const projectDetails = projectDetailsResult.rows[0];
+      console.log('Detalles del Proyecto:', JSON.stringify(projectDetails, null, 2));
 
-      // Consulta para obtener las tareas asociadas al proyecto
-      const tasksResult = await db.query(`
-        SELECT * FROM TASK WHERE Project_ID = $1;
-      `, [project_id]);
+      // 2. Consulta para obtener las tareas asociadas al proyecto
+      const tasksResult = await db.query(
+        `SELECT * FROM TASK WHERE Project_ID = $1;`, 
+        [project_id]
+      );
 
-      console.log('Tareas recuperadas para Project_ID', project_id, tasksResult.rows);  // Verificación de las tareas
+      // Mostrar las tareas recuperadas en formato JSON
+      console.log('Tareas recuperadas para Project_ID', project_id, JSON.stringify(tasksResult.rows, null, 2));
 
+      // Devolver el proyecto con los detalles y las tareas
       return {
-        Project: project,
-        Tasks: tasksResult.rows
+        Project: projectDetails,  // Usamos los detalles del proyecto
+        Tasks: tasksResult.rows    // Las tareas asociadas al proyecto
       };
     });
 
@@ -195,5 +201,6 @@ async function showUserProjectsAndTasks(user_id) {
     return filteredProjectsWithTasks;
   } catch (error) {
     console.error('Error al ejecutar las consultas:', error);
+    return []; // Devuelve un array vacío en caso de error
   }
 }
