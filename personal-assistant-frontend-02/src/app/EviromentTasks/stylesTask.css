@@ -1,0 +1,60 @@
+/* Fondo oscuro y texto blanco para los números de los días */
+.dark-calendar .rdrDayNumber {
+    background-color: #333333 !important; /* Fondo oscuro para los números de los días */
+    color: #FFFFFF !important; /* Color blanco para los números */
+    border-radius: 50%; /* Bordes redondeados para los números */
+    padding: 8px; /* Espaciado para que el número quede centrado */
+    font-weight: bold; /* Hacer el número más visible */
+}
+
+/* Estilo para el día seleccionado */
+.dark-calendar .rdrSelectedDate {
+    background-color: #FF4081 !important; /* Fondo rosado para el día seleccionado */
+    color: #FFFFFF !important; /* Texto blanco para la fecha seleccionada */
+    border-radius: 50%; /* Asegurarse de que el día seleccionado sea redondeado */
+}
+
+/* Estilo para los días de hoy */
+.dark-calendar .rdrDayToday {
+    background-color: #FF4081 !important; /* Día de hoy con fondo rosado */
+    color: #FFFFFF !important; /* Texto blanco */
+    border-radius: 50%; /* Bordes redondeados */
+}
+
+/* Días deshabilitados (por ejemplo, días fuera del rango de selección) */
+.dark-calendar .rdrDayDisabled {
+    background-color: #1a1a1a !important; /* Fondo oscuro para los días deshabilitados */
+    color: #555555 !important; /* Texto gris claro para los días deshabilitados */
+}
+
+/* Fondo oscuro para el área general del calendario */
+.dark-calendar .rdrCalendarWrapper {
+    background-color: #121212 !important; /* Fondo oscuro para el calendario */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7) !important; /* Sombra sutil */
+}
+
+/* Asegúrate de que todos los días tengan el fondo oscuro */
+.dark-calendar .rdrMonthAndYearWrapper, 
+.dark-calendar .rdrDateDisplayWrapper {
+    background-color: #1a1a1a !important; /* Fondo oscuro para los encabezados de mes/año y visualización de fechas */
+    color: #FFFFFF !important; /* Texto blanco */
+}
+
+/* Fondo oscuro para la barra de selección de fechas */
+.dark-calendar .rdrRangeWrapper {
+    background-color: #1a1a1a !important; /* Fondo oscuro para el área de selección de fechas */
+}
+
+/* Para mejorar la visibilidad de las fechas seleccionadas */
+.dark-calendar .rdrInRange {
+    background-color: #FF4081 !important; /* Color de fondo rosado para las fechas dentro del rango */
+    color: #FFFFFF !important; /* Texto blanco */
+}
+
+/* Asegurarse de que el calendario sea visible y legible */
+.dark-calendar .rdrDayNumber, 
+.dark-calendar .rdrDaySelected, 
+.dark-calendar .rdrDayToday {
+    color: #FFFFFF !important; /* Texto blanco para días y fechas seleccionadas */
+}

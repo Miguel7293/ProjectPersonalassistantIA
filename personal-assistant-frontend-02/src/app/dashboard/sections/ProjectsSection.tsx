@@ -232,7 +232,7 @@ const ProjectsSection: React.FC<GetData> = ({ userData }) => {
     const isValidExtension = validExtensions.some(ext => url.endsWith(ext));
     
     if (!isValidExtension) {
-      setIsImageValid(false); // No es una imagen válida
+      setIsImageValid(true); // No es una imagen válida
       return;
     }
 
@@ -242,7 +242,7 @@ const ProjectsSection: React.FC<GetData> = ({ userData }) => {
       if (response.ok) {
         setIsImageValid(true); // Si la respuesta es ok, la imagen es válida
       } else {
-        setIsImageValid(false); // Si no, la imagen no es válida
+        setIsImageValid(true); // Si no, la imagen no es válida
       }
     } catch (error) {
       setIsImageValid(false); // Si ocurre un error en la solicitud, consideramos que la imagen no es válida
@@ -418,7 +418,7 @@ const handleMouseLeave = () => {
         onClick={() => {
           if (!userData?.id) return;
           localStorage.setItem('projectId', project.project_id.toString());
-          localStorage.setItem('userId', userData.id);
+          localStorage.setItem('userId', userData.id.toString());
           router.push('/EviromentTasks');
         }}
         onMouseEnter={() => handleMouseEnter(project.project_id)}

@@ -57,7 +57,7 @@ const performOperation = async (req, res) => {
                 const userProjectData = {
                     User_ID,
                     Project_ID,
-                    Role: 'Admin',
+                    Role: 'ADMIN',
                     Assignment_Date: new Date().toISOString().split('T')[0],
                 };
                 

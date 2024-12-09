@@ -91,7 +91,7 @@ export const UserProjectModel = {
     getCollaboratorsByProjectId: async (projectId) => {
         const query = {
             text: `
-                SELECT U.Name, U.Email, U.Image_URL, U.unique_code
+                SELECT U.Name, U.Email, U.Image_URL, U.unique_code, U.User_ID
                 FROM USERS U
                 INNER JOIN USER_PROJECT UP ON U.User_ID = UP.User_ID
                 WHERE UP.Project_ID = $1 AND UP.Role = 'COLLABORATOR'`,
