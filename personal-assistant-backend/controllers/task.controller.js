@@ -50,6 +50,9 @@ const performOperation = async (req, res) => {
                 const formattedDueDate = formatDate(Due_Date);
                 const taskAssignedPoints = Assigned_Points || 0;
 
+                const statusTask = Priority || 'NOT STARTED';
+
+
             
                 // Insertar la tarea
                 result = await TaskModel.insert({
@@ -59,7 +62,7 @@ const performOperation = async (req, res) => {
                     Start_Date: formattedStartDate,
                     End_Date: formattedEndDate,
                     Due_Date: formattedDueDate,
-                    Status,
+                    Status: statusTask,
                     Priority: taskPriority,
                     Assigned_Points: taskAssignedPoints // Añadir puntos asignados
                 });
