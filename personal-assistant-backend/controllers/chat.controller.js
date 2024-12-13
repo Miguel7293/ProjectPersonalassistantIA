@@ -23,12 +23,10 @@ export const ChatController = {
       }
 
       console.log('ID de usuario recibido:', user_id);
-      
-      // Si no se ha consultado antes, ejecutamos la consulta
-      if (userProjectsData.length === 0) {
-        userProjectsData = await showUserProjectsAndTasks(user_id);  
-        console.log('Resultados de las tareas del usuario:', userProjectsData);  // Para ver los datos
-      }
+
+      // Siempre actualizamos userProjectsData antes de generar el fullPrompt
+      userProjectsData = await showUserProjectsAndTasks(user_id);  
+      console.log('Resultados de las tareas del usuario:', userProjectsData);  // Para ver los datos
 
       // Construir el contexto desde el historial
       const context = conversationHistory.map((msg) => {
@@ -85,9 +83,7 @@ export const ChatController = {
             conversationHistory.push({ content: prompt, response: botResponse });
 
             // Responder al cliente con el mensaje de éxito y los datos del proyecto en formato esquema
-            const responseMessage = `
-              ¡Genial! El proyecto ha sido creado con éxito.
-            `;
+            const responseMessage = `¡Genial! El proyecto ha sido creado con éxito.`;
 
             res.status(200).json({
               response: responseMessage,  // Mensaje con el esquema
@@ -114,6 +110,7 @@ export const ChatController = {
     }
   },
 };
+
 
 // Función para extraer el JSON del texto si lo contiene
 function extractJSON(str) {

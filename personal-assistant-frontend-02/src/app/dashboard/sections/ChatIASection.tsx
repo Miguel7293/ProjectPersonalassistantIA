@@ -127,11 +127,10 @@ const ChatIASection: React.FC<GetData> = ({ userData }) => {
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   const suggestedMessages = [
-    '¿Cómo está el clima hoy?',
     '¿Qué puedes hacer por mí?',
-    '¿Porque soy tan perfecto?',
-    '¿Porque Paolito se enojo este día si solo lo dejamos plantado en una reunión que planificamos?',
-    'Muéstrame una imagen de un gato.',
+    'Puedes ayudarme a crear una Tarea',
+    'Aconsejame cobre alguno de mis proyectos',
+    'Solo necesito hablar',
   ];
 
   const handleSendMessage = async (message: string) => {
