@@ -7,13 +7,13 @@ import FolderIcon from '@mui/icons-material/Folder';
 import ChatIcon from '@mui/icons-material/Chat';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 
-// Definimos los tipos para las props
 interface SidebarProps {
   activeTab: string;
   setActiveTab: React.Dispatch<React.SetStateAction<string>>;
+  sidebarOpen: boolean; // Estado para controlar si el Sidebar está abierto
 }
 
-const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
+const Sidebar = ({ activeTab, setActiveTab, sidebarOpen }: SidebarProps) => {
   const menuItems = [
     { label: 'Dashboard', icon: <DashboardIcon />, id: 'dashboard' },
     { label: 'Schedules', icon: <ScheduleIcon />, id: 'schedules' },
@@ -23,43 +23,71 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   ];
 
   return (
-<Box
-  width={240}
-  bgcolor="background.paper" // Fondo oscuro en lugar de azul.
-  color="text.primary" // Texto claro, como gris/blanco.
-  minHeight="100vh"
-  display="flex"
-  flexDirection="column"
->
-  <Typography variant="h5" align="center" py={2}>
-    Dashboard
-  </Typography>
-  <Divider />
-  <List>
-    {menuItems.map((item) => (
-      <ListItemButton
-        key={item.id}
-        selected={activeTab === item.id}
-        onClick={() => setActiveTab(item.id)}
+    <Box
+      sx={{
+        width: sidebarOpen ? 240 : 60, // Cambia entre ancho completo y colapsado
+        transition: 'width 0.3s ease-in-out', // Animación suave del ancho
+        bgcolor: 'background.paper',
+        color: 'text.primary',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden', // Oculta contenido extra al colapsar
+        boxShadow: sidebarOpen ? 2 : 0, // Sombra cuando está abierto
+      }}
+    >
+      <Typography
+        variant="h5"
+        align="center"
+        py={2}
         sx={{
-          '&.Mui-selected': {
-            bgcolor: 'secondary.main', // Fondo rosa medio para seleccionado.
-            color: 'text.primary', // Texto claro en botón seleccionado.
-          },
-          '&:hover': {
-            bgcolor: 'primary.main', // Fondo azul al pasar el mouse.
-            color: 'white', // Texto blanco al hacer hover.
-          },
+          opacity: sidebarOpen ? 1 : 0, // Oculta el título al colapsar
+          transition: 'opacity 0.3s ease-in-out', // Transición de opacidad
         }}
       >
-        <ListItemIcon sx={{ color: 'inherit' }}>{item.icon}</ListItemIcon>
-        <ListItemText primary={item.label} />
-      </ListItemButton>
-    ))}
-  </List>
-</Box>
-
-
+        Dashboard
+      </Typography>
+      <Divider />
+      <List>
+        {menuItems.map((item) => (
+          <ListItemButton
+            key={item.id}
+            selected={activeTab === item.id}
+            onClick={() => setActiveTab(item.id)}
+            sx={{
+              '&.Mui-selected': {
+                bgcolor: 'secondary.main',
+                color: 'text.primary',
+              },
+              '&:hover': {
+                bgcolor: 'primary.main',
+                color: 'white',
+              },
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'all 0.3s ease-in-out', // Transición general para el botón
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                color: 'inherit',
+                minWidth: sidebarOpen ? 40 : 24, // Ajusta el tamaño de los íconos
+                transition: 'min-width 0.3s ease-in-out', // Suaviza el tamaño
+              }}
+            >
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText
+              primary={item.label}
+              sx={{
+                display: sidebarOpen ? 'block' : 'none', // Oculta el texto al colapsar
+                transition: 'opacity 0.3s ease-in-out', // Transición de opacidad
+              }}
+            />
+          </ListItemButton>
+        ))}
+      </List>
+    </Box>
   );
 };
 

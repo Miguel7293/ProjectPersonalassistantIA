@@ -10,7 +10,10 @@ router.post('/register', UserController.register);
 // Ruta para login de usuario
 router.post('/login', UserController.login);
 
-// Ruta par mostrar informacion por el DashBoars
+// Ruta para mostrar información del Dashboard
 router.get('/getDashboardProfile', verifyToken, UserController.profileDashBoard);
+
+// Ruta para actualizar el perfil del usuario
+router.put('/updateProfile', verifyToken, UserController.updateProfile);
 
 export default router;

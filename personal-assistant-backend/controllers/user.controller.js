@@ -119,6 +119,50 @@ const profileDashBoard = async (req, res) => {
     }
 };
 
+
+const updateProfile = async (req, res) => {
+    try {
+        const { name, password, image_url } = req.body;
+
+        // Verifica que el usuario esté autenticado
+        const userEmail = req.email; // El email se extrae del token verificado por el middleware
+        const user = await UserModel.findOneByEmail(userEmail);
+
+        if (!user) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'User not found',
+            });
+        }
+
+        // Actualiza los campos proporcionados
+        if (name) user.name = name;
+
+        if (password) {
+            const salt = await bcryptjs.genSalt(10);
+            user.password = await bcryptjs.hash(password, salt);
+        }
+
+        if (image_url) user.image_url = image_url;
+
+        // Guarda el usuario actualizado
+        await user.save();
+
+        return res.json({
+            ok: true,
+            msg: 'Profile updated successfully',
+            user,
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            ok: false,
+            msg: 'Server error',
+        });
+    }
+};
+
+
 const generateUniqueCode = async () => {
     const generateCode = () => {
         const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -144,5 +188,6 @@ const generateUniqueCode = async () => {
 export const UserController = {
     register,
     login,
-    profileDashBoard
+    profileDashBoard,
+    updateProfile
 };
