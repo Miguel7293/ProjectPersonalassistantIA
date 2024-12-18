@@ -331,6 +331,7 @@ DECLARE
     task_title VARCHAR(100);
     project_name VARCHAR(100);
     user_email VARCHAR(100); -- Almacena el correo del usuario que completó la tarea
+    admin_code CHAR(12);
 BEGIN
     -- Verificar si la tarea ha sido completada
     IF NEW.Completed = TRUE THEN
@@ -343,12 +344,17 @@ BEGIN
         FROM USERS
         WHERE User_ID = NEW.User_ID;
 
+            -- Obtener el unique_code del administrador del proyecto
+        SELECT unique_code INTO admin_code
+        FROM USER_PROJECT
+        JOIN USERS ON USER_PROJECT.User_ID = USERS.User_ID
+        WHERE USER_PROJECT.Project_ID = (SELECT Project_ID FROM TASK WHERE Task_ID = NEW.Task_ID)
+        AND ROLE = 'ADMIN'
+        LIMIT 1;
+
         -- Crear notificación con el correo electrónico del usuario
         INSERT INTO NOTIFICATION (unique_code, Type, Content)
-        VALUES (
-            (SELECT unique_code FROM USERS WHERE User_ID = NEW.User_ID), 
-            'Task Completed', 
-            'El usuario con correo ' || user_email || ' completó la tarea "' || task_title || '" en el proyecto "' || project_name || '".'
+        VALUES ( admin_code, 'Task Completed', 'El usuario con correo ' || user_email || ' completó la tarea "' || task_title || '" en el proyecto "' || project_name || '".'
         );
     END IF;
 
