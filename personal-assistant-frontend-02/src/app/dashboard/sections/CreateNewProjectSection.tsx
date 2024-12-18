@@ -32,6 +32,7 @@ const CreateProject: React.FC<GetData> = ({ userData }) => {
     key: 'selection',
   }]);
   const [imageUrl, setImageUrl] = useState('');
+  const [maxPoints, setMaxPoints] = useState<number>(0);
   const [isImageValid, setIsImageValid] = useState(true);
   const router = useRouter();
 
@@ -83,7 +84,8 @@ const CreateProject: React.FC<GetData> = ({ userData }) => {
       Name,
       Start_Date: dayjs(Start_Date).toISOString().split('T')[0],
       End_Date: dayjs(End_Date).toISOString().split('T')[0],
-      Description,
+      Max_Points: maxPoints,
+      MaxPoints: maxPoints,
     };
   
     try {
@@ -177,16 +179,14 @@ const CreateProject: React.FC<GetData> = ({ userData }) => {
               name="Name"
               sx={{ marginBottom: 2 }}
             />
-
             <TextField
-              label="Descripción del Proyecto"
-              fullWidth
-              value={formData.Description}
-              onChange={handleChange}
-              name="Description"
-              sx={{ marginBottom: 2 }}
-            />
-
+                label="Puntos Máximos"
+                fullWidth
+                type="number"
+                value={maxPoints}
+                onChange={e => setMaxPoints(Number(e.target.value))}
+                sx={{ marginBottom: 2 }}
+              />
             {/* URL de la imagen */}
             <TextField
               label="URL de la Imagen"
@@ -248,9 +248,6 @@ const CreateProject: React.FC<GetData> = ({ userData }) => {
 
         {/* Botones de Cancelar y Crear fuera de las cajas, al final */}
         <Box display="flex" justifyContent="space-between" marginTop={3}>
-          <Button variant="outlined" onClick={() => router.push('/projects')}>
-            Cancelar
-          </Button>
           <Button
           variant="contained"
           color="primary"
