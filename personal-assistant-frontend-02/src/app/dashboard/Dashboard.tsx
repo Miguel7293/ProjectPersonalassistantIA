@@ -107,7 +107,7 @@ export default function Dashboard() {
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} sidebarOpen={sidebarOpen} />
 
         <Box flexGrow={1} p={3} bgcolor="background.default">
-          {activeTab === 'dashboard' && <DashboardSection />}
+          {activeTab === 'dashboard' && <DashboardSection userData={userData} />}
           {activeTab === 'schedules' && <SchedulesSection userData={userData} />}
           {activeTab === 'projects' && <ProjectsSection userData={userData} />}
           {activeTab === 'chat' && <ChatIASection userData={userData} />}
