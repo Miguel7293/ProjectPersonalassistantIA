@@ -7,18 +7,20 @@ import taskRouter from './routes/task.route.js';
 import projectRouter from './routes/project.route.js';
 import chatRouter from './routes/chat.route.js';
 
-
 const app = express();
 
 // Configuración de CORS
 const corsOptions = {
-  origin: 'http://localhost:3000',  // Permite solicitudes desde tu frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Métodos permitidos
-  allowedHeaders: ['Content-Type'],  // Encabezados permitidos
+  origin: 'http://localhost:3000', // Permitir solicitudes desde el frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'], // Incluir Authorization
 };
+
 
 // Usamos CORS en todas las rutas
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Manejar preflight requests
+
 
 app.use(express.json()); // Habilitamos para recibir JSON
 app.use(express.urlencoded({ extended: true })); // Habilitamos para recibir datos URL-encoded

@@ -1,6 +1,7 @@
 import { UserModel } from '../models/user.model.js';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { db } from '../database/connection.database.js';  // Ajusta la ruta según tu estructura de carpetas
 
 const register = async (req, res) => {
     try {
@@ -135,26 +136,52 @@ const updateProfile = async (req, res) => {
             });
         }
 
-        // Actualiza los campos proporcionados
-        if (name) user.name = name;
+        // Prepara la consulta de actualización
+        let updateFields = [];
+        let updateValues = [];
+
+        if (name) {
+            updateFields.push('name');
+            updateValues.push(name);
+        }
 
         if (password) {
             const salt = await bcryptjs.genSalt(10);
-            user.password = await bcryptjs.hash(password, salt);
+            const hashedPassword = await bcryptjs.hash(password, salt);
+            updateFields.push('password');
+            updateValues.push(hashedPassword);
         }
 
-        if (image_url) user.image_url = image_url;
+        if (image_url) {
+            updateFields.push('image_url');
+            updateValues.push(image_url);
+        }
 
-        // Guarda el usuario actualizado
-        await user.save();
+        // Verifica que haya al menos un campo para actualizar
+        if (updateFields.length === 0) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'No update fields provided',
+            });
+        }
+
+        // Construye la consulta SQL para actualizar
+        const setClause = updateFields.map((field, index) => `${field} = $${index + 1}`).join(', ');
+        const query = {
+            text: `UPDATE users SET ${setClause} WHERE email = $${updateFields.length + 1} RETURNING *`,
+            values: [...updateValues, userEmail],
+        };
+
+        const { rows } = await db.query(query);
+        const updatedUser = rows[0];
 
         return res.json({
             ok: true,
             msg: 'Profile updated successfully',
-            user,
+            user: updatedUser,
         });
     } catch (err) {
-        console.error(err);
+        console.error('Error updating profile:', err);
         return res.status(500).json({
             ok: false,
             msg: 'Server error',

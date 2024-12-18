@@ -11,34 +11,47 @@ import SettingsSection from './sections/SettingsSection';
 import CreateNewProjectSection from './sections/CreateNewProjectSection';
 import { useState, useEffect } from 'react';
 
+// Define el tipo UserData
+interface UserData {
+  token: string | null;
+  username: string | null;
+  id: string | null;
+  email: string | null;
+  image_url: string | null;
+}
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+    console.log('Sidebar Open:', !sidebarOpen);  // Log del estado de la barra lateral
   };
 
-  const [userData, setUserData] = useState<{
-    token: string | null;
-    username: string | null;
-    id: string | null;
-  }>({
+  const [userData, setUserData] = useState<UserData>({
     token: null,
     username: null,
     id: null,
+    email: null,
+    image_url: null,
   });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
     const id = localStorage.getItem('id');
+    const email = localStorage.getItem('email');
+    const image_url = localStorage.getItem('image_url');
 
-    setUserData({ token, username, id });
+    // Log de los datos del usuario recuperados desde localStorage
+    console.log('User Data from localStorage:', { token, username, id, email, image_url });
+
+    setUserData({ token, username, id, email, image_url });
   }, []);
 
-  // Manejar la selección desde el menú del avatar
   const handleMenuOptionSelect = (option: string) => {
+    console.log('Selected Menu Option:', option);  // Log de la opción del menú seleccionada
     setActiveTab(option);
   };
 
@@ -55,13 +68,13 @@ export default function Dashboard() {
       >
         <TopBar
           userName={userData.username || 'Usuario'}
+          image_url={userData.image_url}
           onMenuClick={toggleSidebar}
-          onMenuOptionSelect={handleMenuOptionSelect} // Pasar función al TopBar
+          onMenuOptionSelect={handleMenuOptionSelect}
         />
       </Box>
 
       <Box display="flex" flexGrow={1} sx={{ marginTop: '64px' }}>
-        {/* Sidebar */}
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} sidebarOpen={sidebarOpen} />
 
         {/* Contenido Principal */}
@@ -71,7 +84,15 @@ export default function Dashboard() {
           {activeTab === 'projects' && <ProjectsSection userData={userData} />}
           {activeTab === 'chat' && <ChatIASection userData={userData} />}
           {activeTab === 'create' && <CreateNewProjectSection userData={userData} />}
-          {activeTab === 'settings' && < SettingsSection />}
+          {activeTab === 'settings' && (
+            <SettingsSection
+              userData={{
+                email: userData.email || '',
+                image_url: userData.image_url || '',
+                username: userData.username || '',
+              }}
+            />
+          )}
         </Box>
       </Box>
     </Box>

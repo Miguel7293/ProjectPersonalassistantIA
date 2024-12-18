@@ -1,66 +1,39 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
   TextField,
   Typography,
-  Card,
-  CardContent,
-  Avatar,
-  IconButton,
   CircularProgress,
+  IconButton,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 
+interface ProfileSettingsProps {
+  userData: {
+    email: string;
+    image_url: string;
+    username: string;
+  };
+}
 
-const ProfileSettings: React.FC = () => {
+const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userData }) => {
   const [formData, setFormData] = useState({
-    email: '',
-    profileUrl: '',
-    name: '',
+    email: userData.email,
+    image_url: userData.image_url,
+    username: userData.username,
     password: '',
   });
   const [loading, setLoading] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
   const [editableFields, setEditableFields] = useState({
-    profileUrl: false,
-    name: false,
+    image_url: false,
+    username: false,
     password: false,
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-
-  // Cargar datos del usuario desde la API
-  useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-
-        const response = await axios.get('http://localhost:5000/api/getDashboardProfile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const user = response.data.user;
-        setFormData({
-          email: user.email,
-          profileUrl: user.image_url || '/static/images/avatar/1.jpg',
-          name: user.name,
-          password: '',
-        });
-      } catch (err) {
-        console.error('Error fetching user data:', err);
-        setError('Error connecting to server');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   const handleEditClick = (field: string) => {
     setEditableFields({ ...editableFields, [field]: true });
@@ -79,32 +52,49 @@ const ProfileSettings: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      // Realizamos la solicitud PUT a la API
       const response = await axios.put(
-        'http://localhost:5000/api/updateProfile',
+        'http://localhost:5000/api/v1/users/updateProfile', // Cambiar la URL a tu ruta de actualización
         {
-          name: formData.name,
+          username: formData.username,
           password: formData.password,
-          image_url: formData.profileUrl,
+          image_url: formData.image_url,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
+      // Revisamos la respuesta del servidor
       if (response.data.ok) {
         setMessage('Profile updated successfully!');
         setIsChanged(false);
         setEditableFields({
-          profileUrl: false,
-          name: false,
+          image_url: false,
+          username: false,
           password: false,
         });
       } else {
         setError(response.data.msg || 'Failed to update profile');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating profile:', err);
-      setError('Error connecting to server');
+
+      // Mejoramos la captura de errores
+      if (err.response) {
+        // El servidor respondió con un error (ejemplo 400, 500)
+        setError(`Server responded with status: ${err.response.status}`);
+      } else if (err.request) {
+        // No hubo respuesta del servidor (problema de red)
+        setError('No response received from the server');
+      } else {
+        // Error en la configuración de la solicitud
+        setError(`Error: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -124,7 +114,7 @@ const ProfileSettings: React.FC = () => {
         p: 2,
       }}
     >
-      <Card
+      <Box
         sx={{
           maxWidth: 500,
           padding: 4,
@@ -133,103 +123,111 @@ const ProfileSettings: React.FC = () => {
           boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.5)',
         }}
       >
-        <CardContent>
-          <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 2 }}>
-            Profile Settings
-          </Typography>
+        <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 2 }}>
+          Profile Settings
+        </Typography>
 
-          {loading ? (
-            <Box display="flex" justifyContent="center">
-              <CircularProgress />
+        {loading ? (
+          <Box display="flex" justifyContent="center">
+            <CircularProgress />
+          </Box>
+        ) : (
+          <>
+            {/* Avatar */}
+            <Box display="flex" justifyContent="center" mb={3}>
+              <img
+                src={formData.image_url}
+                alt="Profile"
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  border: '2px solid #FF4081',
+                }}
+              />
             </Box>
-          ) : (
-            <>
-              {/* Avatar */}
-              <Box display="flex" justifyContent="center" mb={3}>
-                <Avatar
-                  src={formData.profileUrl}
-                  alt="Profile Picture"
-                  sx={{ width: 80, height: 80, border: '2px solid #FF4081' }}
-                />
-              </Box>
 
-              {/* Campos del formulario */}
+            {/* Campos del formulario */}
+            <TextField
+              label="Email"
+              variant="outlined"
+              fullWidth
+              value={formData.email}
+              margin="normal"
+              InputLabelProps={{ style: { color: 'lightgray' } }}
+              InputProps={{
+                style: {
+                  color: 'white',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+              disabled
+            />
+            <Box display="flex" alignItems="center">
               <TextField
-                label="Email"
+                label="Image URL"
                 variant="outlined"
                 fullWidth
-                value={formData.email}
+                name="image_url"
+                value={formData.image_url}
+                onChange={handleChange}
                 margin="normal"
-                disabled
+                disabled={!editableFields.image_url}
                 InputLabelProps={{ style: { color: 'lightgray' } }}
                 InputProps={{ style: { color: 'white' } }}
               />
-              <Box display="flex" alignItems="center">
-                <TextField
-                  label="Profile URL"
-                  variant="outlined"
-                  fullWidth
-                  name="profileUrl"
-                  value={formData.profileUrl}
-                  onChange={handleChange}
-                  margin="normal"
-                  disabled={!editableFields.profileUrl}
-                  InputLabelProps={{ style: { color: 'lightgray' } }}
-                  InputProps={{ style: { color: 'white' } }}
-                />
-                <IconButton onClick={() => handleEditClick('profileUrl')} sx={{ ml: 1 }}>
-                  <EditIcon sx={{ color: 'lightgray' }} />
-                </IconButton>
-              </Box>
+              <IconButton onClick={() => handleEditClick('image_url')} sx={{ ml: 1 }}>
+                <EditIcon sx={{ color: 'lightgray' }} />
+              </IconButton>
+            </Box>
 
-              <Box display="flex" alignItems="center">
-                <TextField
-                  label="Name"
-                  variant="outlined"
-                  fullWidth
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  margin="normal"
-                  disabled={!editableFields.name}
-                  InputLabelProps={{ style: { color: 'lightgray' } }}
-                  InputProps={{ style: { color: 'white' } }}
-                />
-                <IconButton onClick={() => handleEditClick('name')} sx={{ ml: 1 }}>
-                  <EditIcon sx={{ color: 'lightgray' }} />
-                </IconButton>
-              </Box>
-
-              {/* Botón Guardar */}
-              <Button
-                variant="contained"
+            <Box display="flex" alignItems="center">
+              <TextField
+                label="Username"
+                variant="outlined"
                 fullWidth
-                disabled={!isChanged}
-                onClick={handleSubmit}
-                sx={{
-                  bgcolor: isChanged ? 'primary.main' : 'gray',
-                  color: 'white',
-                  mt: 2,
-                  ':hover': { bgcolor: isChanged ? 'primary.dark' : 'gray' },
-                }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Save Changes'}
-              </Button>
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                margin="normal"
+                disabled={!editableFields.username}
+                InputLabelProps={{ style: { color: 'lightgray' } }}
+                InputProps={{ style: { color: 'white' } }}
+              />
+              <IconButton onClick={() => handleEditClick('username')} sx={{ ml: 1 }}>
+                <EditIcon sx={{ color: 'lightgray' }} />
+              </IconButton>
+            </Box>
 
-              {message && (
-                <Typography sx={{ color: '#FF4081', mt: 2, textAlign: 'center' }}>
-                  {message}
-                </Typography>
-              )}
-              {error && (
-                <Typography sx={{ color: 'red', mt: 2, textAlign: 'center' }}>
-                  {error}
-                </Typography>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            {/* Botón Guardar */}
+            <Button
+              variant="contained"
+              fullWidth
+              disabled={!isChanged}
+              onClick={handleSubmit}
+              sx={{
+                bgcolor: isChanged ? 'primary.main' : 'gray',
+                color: 'white',
+                mt: 2,
+                ':hover': { bgcolor: isChanged ? 'primary.dark' : 'gray' },
+              }}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Save Changes'}
+            </Button>
+
+            {message && (
+              <Typography sx={{ color: '#FF4081', mt: 2, textAlign: 'center' }}>
+                {message}
+              </Typography>
+            )}
+            {error && (
+              <Typography sx={{ color: 'red', mt: 2, textAlign: 'center' }}>
+                {error}
+              </Typography>
+            )}
+          </>
+        )}
+      </Box>
     </Box>
   );
 };

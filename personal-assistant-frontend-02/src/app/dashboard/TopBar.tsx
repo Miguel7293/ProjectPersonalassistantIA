@@ -5,12 +5,13 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { useState } from 'react';
 
 interface TopBarProps {
-  userName: string;
+  userName: string; // Solo el nombre del usuario
+  image_url: string | null; // URL de la imagen del avatar
   onMenuClick: () => void; // Función que se ejecuta al hacer clic en el botón del menú
-  onMenuOptionSelect: (option: string) => void; // Nueva función para cambiar de sección
+  onMenuOptionSelect: (option: string) => void; // Función para cambiar de sección
 }
 
-const TopBar: React.FC<TopBarProps> = ({ userName, onMenuClick, onMenuOptionSelect }) => {
+const TopBar: React.FC<TopBarProps> = ({ userName, image_url, onMenuClick, onMenuOptionSelect }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -46,11 +47,11 @@ const TopBar: React.FC<TopBarProps> = ({ userName, onMenuClick, onMenuOptionSele
           <Typography variant="body1" sx={{ marginRight: 2 }}>
             {userName}
           </Typography>
-          <Avatar 
-            alt={userName} 
-            src="/static/images/avatar/1.jpg" 
-            onClick={handleAvatarClick} 
-            sx={{ cursor: 'pointer' }} 
+          <Avatar
+            alt={userName}
+            src={image_url || '/static/images/avatar/default.jpg'} // Usar imagen por defecto si no hay URL
+            onClick={handleAvatarClick}
+            sx={{ cursor: 'pointer' }}
           />
         </Box>
 

@@ -90,7 +90,8 @@ export default function SignIn(props) {
         localStorage.setItem('token', response.data.jwt);
         localStorage.setItem('username', response.data.user.name);
         localStorage.setItem('id', response.data.user.user_id);
-
+        localStorage.setItem('image_url', response.data.user.image_url);
+        localStorage.setItem('email', response.data.user.email);
         router.push('/dashboard'); // Redirigir al dashboard
       } else {
         setError('Invalid email or password');
