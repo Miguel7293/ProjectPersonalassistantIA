@@ -1,157 +1,114 @@
 'use client';
 
-import { Box, Typography, Card, CardContent, Grid, Divider, Button, Paper } from '@mui/material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Box, Typography, List, ListItem, ListItemButton, ListItemText, Badge, Avatar } from '@mui/material';
+import { useState, useEffect } from 'react';
+import api from '../../../../utils/api'; // Tu instancia de axios o API
 
-const data = [
-  { name: '9:00 AM', uv: 300, pv: 2400, amt: 2400 },
-  { name: '10:00 AM', uv: 200, pv: 4567, amt: 2400 },
-  { name: '11:00 AM', uv: 278, pv: 3908, amt: 2400 },
-  { name: '12:00 PM', uv: 189, pv: 4800, amt: 2400 },
-  { name: '1:00 PM', uv: 239, pv: 3800, amt: 2400 },
-  { name: '2:00 PM', uv: 349, pv: 4300, amt: 2400 },
-  { name: '3:00 PM', uv: 400, pv: 5000, amt: 2400 },
-];
+// Definir el tipo de la notificación
+interface Notification {
+  notification_id: number;
+  unique_code: string;
+  type: string;
+  content: string;
+  creation_date: string;
+  read: boolean;
+}
 
-const ShedulesSection = () => {
+// Definir el tipo de userData
+interface GetData {
+  userData: {
+    unique_code: string | null;
+    id: string | null;
+  };
+}
+
+const ShedulesSection = ({ userData }: { userData: GetData['userData'] | null }) => {
+  // Verifica si userData existe antes de proceder
+  if (!userData) {
+    console.log('User not authenticated');  // Depuración para saber que no hay userData
+    return <Typography color="error">User not authenticated</Typography>; // Si no hay userData, no renderizamos nada
+  }
+
+  // Si userData está disponible, guardamos los datos en localStorage
+  if (userData.id) {
+    console.log('Storing in localStorage: userId:', userData.id, 'uniqueCode:', userData.unique_code);  // Depuración
+    localStorage.setItem('userId', userData.id.toString());
+    localStorage.setItem('uniqueCode', userData.unique_code || '');  // Aseguramos que no sea null o undefined
+  }
+
+  const [notificationsData, setNotificationsData] = useState<Notification[]>([]); // Inicializamos con el tipo Notification[]
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (userData?.unique_code) {
+        try {
+          // Hacemos la solicitud usando el unique_code del usuario
+          const response = await api.get(`/api/v1/notification/${userData.unique_code}`);
+
+          if (response.data.ok) {
+            // Si la respuesta es exitosa, se actualizan las notificaciones
+            setNotificationsData(response.data.notifications);
+          } else {
+            setMessage('No notifications found or error fetching notifications.');
+          }
+        } catch (error) {
+          console.error(error);
+          setMessage('Error fetching notifications.');
+        }
+      } else {
+        setMessage('User not authenticated.');
+      }
+    };
+
+    fetchNotifications();
+  }, [userData]); // Solo se ejecuta cuando userData cambia o se monta el componente
+
+  const handleNotificationClick = (id: number) => {
+    setNotificationsData((prevNotifications) =>
+      prevNotifications.map((notification) =>
+        notification.notification_id === id ? { ...notification, read: true } : notification
+      )
+    );
+  };
+
   return (
-    <Box sx={{ padding: '20px' }}>
-      {/* Título de la Sección */}
-      <Typography variant="h4" gutterBottom sx={{ color: '#E0E0E0' }}>
-        Project Schedules
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Notifications
       </Typography>
-
-      {/* Contenedor de los proyectos */}
-      <Grid container spacing={3}>
-        {/* Proyecto 1 */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{ backgroundColor: '#2C2C2C' }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ color: '#E0E0E0' }}>
-                Project A
-              </Typography>
-              <Divider sx={{ marginY: '10px' }} />
-              <Typography variant="body1" sx={{ color: '#B0B0B0' }}>
-                Time: 9:00 AM - 5:00 PM
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#4CAF50' }}>
-                Active: +10%
-              </Typography>
-
-              {/* Gráfico de barras */}
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="uv" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-
-              <Button
-                sx={{
-                  marginTop: '15px',
-                  backgroundColor: '#1976D2',
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: '#1565C0',
-                  },
-                }}
+      {message && <Typography color="error">{message}</Typography>} {/* Mostrar mensajes de error o éxito */}
+      <List>
+        {notificationsData.map((notification) => (
+          <ListItem key={notification.notification_id}>
+            <ListItemButton
+              onClick={() => handleNotificationClick(notification.notification_id)}
+              sx={{
+                backgroundColor: notification.read ? 'transparent' : '#f1f1f1',
+                borderRadius: '8px',
+                padding: '8px 16px',
+              }}
+            >
+              <Badge
+                color="primary"
+                variant="dot"
+                invisible={notification.read}
               >
-                View Schedule
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Proyecto 2 */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{ backgroundColor: '#2C2C2C' }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ color: '#E0E0E0' }}>
-                Project B
-              </Typography>
-              <Divider sx={{ marginY: '10px' }} />
-              <Typography variant="body1" sx={{ color: '#B0B0B0' }}>
-                Time: 8:30 AM - 4:30 PM
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#F44336' }}>
-                Delayed: -5%
-              </Typography>
-
-              {/* Gráfico de barras */}
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="uv" fill="#FF6347" />
-                </BarChart>
-              </ResponsiveContainer>
-
-              <Button
-                sx={{
-                  marginTop: '15px',
-                  backgroundColor: '#1976D2',
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: '#1565C0',
-                  },
-                }}
-              >
-                View Schedule
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Proyecto 3 */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{ backgroundColor: '#2C2C2C' }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ color: '#E0E0E0' }}>
-                Project C
-              </Typography>
-              <Divider sx={{ marginY: '10px' }} />
-              <Typography variant="body1" sx={{ color: '#B0B0B0' }}>
-                Time: 10:00 AM - 6:00 PM
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#FF9800' }}>
-                In Progress: 50%
-              </Typography>
-
-              {/* Gráfico de barras */}
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="uv" fill="#FF9800" />
-                </BarChart>
-              </ResponsiveContainer>
-
-              <Button
-                sx={{
-                  marginTop: '15px',
-                  backgroundColor: '#1976D2',
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: '#1565C0',
-                  },
-                }}
-              >
-                View Schedule
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+                <Avatar sx={{ marginRight: 2 }}>N</Avatar>
+              </Badge>
+              <ListItemText
+                primary={notification.type} // Mostramos el tipo de notificación
+                secondary={
+                  <>
+                    <Typography variant="body2">{notification.content}</Typography>
+                    <Typography variant="caption" color="textSecondary">{new Date(notification.creation_date).toLocaleString()}</Typography> {/* Fecha de la notificación */}
+                  </>
+                }
+              />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
     </Box>
   );
 };

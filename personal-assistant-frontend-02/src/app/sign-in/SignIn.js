@@ -92,6 +92,7 @@ export default function SignIn(props) {
         localStorage.setItem('id', response.data.user.user_id);
         localStorage.setItem('image_url', response.data.user.image_url);
         localStorage.setItem('email', response.data.user.email);
+        localStorage.setItem('unique_code', response.data.user.unique_code);
         router.push('/dashboard'); // Redirigir al dashboard
       } else {
         setError('Invalid email or password');

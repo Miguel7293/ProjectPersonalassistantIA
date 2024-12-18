@@ -18,6 +18,7 @@ interface UserData {
   id: string | null;
   email: string | null;
   image_url: string | null;
+  unique_code: string | null;
 }
 
 export default function Dashboard() {
@@ -35,6 +36,7 @@ export default function Dashboard() {
     id: null,
     email: null,
     image_url: null,
+    unique_code: null,
   });
 
   useEffect(() => {
@@ -43,11 +45,13 @@ export default function Dashboard() {
     const id = localStorage.getItem('id');
     const email = localStorage.getItem('email');
     const image_url = localStorage.getItem('image_url');
+    const unique_code = localStorage.getItem('unique_code');
+
 
     // Log de los datos del usuario recuperados desde localStorage
-    console.log('User Data from localStorage:', { token, username, id, email, image_url });
+    console.log('User Data from localStorage:', { token, username, id, email, image_url,unique_code });
 
-    setUserData({ token, username, id, email, image_url });
+    setUserData({ token, username, id, email, image_url,unique_code });
   }, []);
 
   const handleMenuOptionSelect = (option: string) => {
@@ -80,7 +84,7 @@ export default function Dashboard() {
         {/* Contenido Principal */}
         <Box flexGrow={1} p={3} bgcolor="background.default">
           {activeTab === 'dashboard' && <DashboardSection />}
-          {activeTab === 'schedules' && <SchedulesSection />}
+          {activeTab === 'schedules' && <SchedulesSection userData={userData}  />}
           {activeTab === 'projects' && <ProjectsSection userData={userData} />}
           {activeTab === 'chat' && <ChatIASection userData={userData} />}
           {activeTab === 'create' && <CreateNewProjectSection userData={userData} />}
