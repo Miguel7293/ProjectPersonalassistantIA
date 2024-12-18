@@ -64,12 +64,24 @@ const ShedulesSection = ({ userData }: { userData: GetData['userData'] | null })
     fetchNotifications();
   }, [userData]); // Solo se ejecuta cuando userData cambia o se monta el componente
 
-  const handleNotificationClick = (id: number) => {
-    setNotificationsData((prevNotifications) =>
-      prevNotifications.map((notification) =>
-        notification.notification_id === id ? { ...notification, read: true } : notification
-      )
-    );
+  const handleNotificationClick = async (id: number) => {
+    try {
+      // Realizar la solicitud a la API para marcar la notificación como leída
+      const response = await api.put(`/api/v1/notification/readed/${id}`);
+
+      if (response.data.ok) {
+        // Si la API devuelve éxito, actualizamos el estado local para reflejar la notificación leída
+        setNotificationsData((prevNotifications) =>
+          prevNotifications.map((notification) =>
+            notification.notification_id === id ? { ...notification, read: true } : notification
+          )
+        );
+      } else {
+        console.error('Failed to update notification to read');
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
   return (
@@ -82,9 +94,9 @@ const ShedulesSection = ({ userData }: { userData: GetData['userData'] | null })
         {notificationsData.map((notification) => (
           <ListItem key={notification.notification_id}>
             <ListItemButton
-              onClick={() => handleNotificationClick(notification.notification_id)}
+              onClick={() => handleNotificationClick(notification.notification_id)} // Al hacer clic, marcamos como leída
               sx={{
-                backgroundColor: notification.read ? 'transparent' : '#f1f1f1',
+                backgroundColor: notification.read ? 'transparent' : '#ABABAB',
                 borderRadius: '8px',
                 padding: '8px 16px',
               }}
