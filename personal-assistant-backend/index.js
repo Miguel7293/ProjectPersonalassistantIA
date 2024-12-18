@@ -6,10 +6,7 @@ import userRouter from './routes/user.route.js';
 import taskRouter from './routes/task.route.js';
 import projectRouter from './routes/project.route.js';
 import chatRouter from './routes/chat.route.js';
-<<<<<<< HEAD
-=======
-import notificationRouter from './routes/notification.route.js'
->>>>>>> 3ff840d74d5ca8c68a29c707ddc1fcdbd96d2cce
+import { UserController } from './controllers/user.controller.js';
 
 const app = express();
 
@@ -25,7 +22,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Manejar preflight requests
 
-
 app.use(express.json()); // Habilitamos para recibir JSON
 app.use(express.urlencoded({ extended: true })); // Habilitamos para recibir datos URL-encoded
 
@@ -36,7 +32,6 @@ app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/task', taskRouter);
 app.use('/api/v1/users', userRouter);  // Ruta para el login y registro
 app.use('/api/v1/project', projectRouter);
-app.use('/api/v1/notification', notificationRouter);
 
 
 const PORT = process.env.PORT || 5000;
