@@ -96,7 +96,7 @@ const ShedulesSection = ({ userData }: { userData: GetData['userData'] | null })
             <ListItemButton
               onClick={() => handleNotificationClick(notification.notification_id)} // Al hacer clic, marcamos como leída
               sx={{
-                backgroundColor: notification.read ? 'transparent' : '#ABABAB',
+                backgroundColor: notification.read ? 'transparent' : '#545454',
                 borderRadius: '8px',
                 padding: '8px 16px',
               }}
@@ -112,8 +112,13 @@ const ShedulesSection = ({ userData }: { userData: GetData['userData'] | null })
                 primary={notification.type} // Mostramos el tipo de notificación
                 secondary={
                   <>
-                    <Typography variant="body2">{notification.content}</Typography>
-                    <Typography variant="caption" color="textSecondary">{new Date(notification.creation_date).toLocaleString()}</Typography> {/* Fecha de la notificación */}
+                    {/* Asegurándonos de no usar <p> */}
+                    <Typography variant="body2" component="span">
+                      {notification.content}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary" component="span">
+                      {new Date(notification.creation_date).toLocaleString()} {/* Fecha de la notificación */}
+                    </Typography>
                   </>
                 }
               />
