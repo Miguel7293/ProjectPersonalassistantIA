@@ -16,21 +16,22 @@ interface ProfileSettingsProps {
     image_url: string;
     username: string;
   };
+  onUpdateUserData: (updatedData: { username?: string; image_url?: string }) => void;
 }
 
-const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userData }) => {
+const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userData, onUpdateUserData }) => {
   const [formData, setFormData] = useState({
     email: userData.email,
     image_url: userData.image_url,
     username: userData.username,
-    password: '',
+    password: '', // Nueva propiedad
   });
   const [loading, setLoading] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
   const [editableFields, setEditableFields] = useState({
     image_url: false,
     username: false,
-    password: false,
+    password: false, // Controla si la contraseña es editable
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -49,18 +50,17 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userData }) => {
     setLoading(true);
     setMessage('');
     setError('');
-
+  
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error("No token found");
       }
-
-      // Realizamos la solicitud PUT a la API
+  
       const response = await axios.put(
-        'http://localhost:5000/api/v1/users/updateProfile', // Cambiar la URL a tu ruta de actualización
+        'http://localhost:5000/api/v1/users/updateProfile',
         {
-          username: formData.username,
+          name: formData.username, // Cambiar 'username' por 'name'
           password: formData.password,
           image_url: formData.image_url,
         },
@@ -68,8 +68,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userData }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
-      // Revisamos la respuesta del servidor
+  
       if (response.data.ok) {
         setMessage('Profile updated successfully!');
         setIsChanged(false);
@@ -78,21 +77,25 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userData }) => {
           username: false,
           password: false,
         });
+  
+        // Actualiza el estado global y el almacenamiento local
+        localStorage.setItem('username', formData.username);
+        localStorage.setItem('image_url', formData.image_url);
+        onUpdateUserData({
+          username: formData.username,
+          image_url: formData.image_url,
+        });
       } else {
         setError(response.data.msg || 'Failed to update profile');
       }
     } catch (err: any) {
       console.error('Error updating profile:', err);
-
-      // Mejoramos la captura de errores
+  
       if (err.response) {
-        // El servidor respondió con un error (ejemplo 400, 500)
         setError(`Server responded with status: ${err.response.status}`);
       } else if (err.request) {
-        // No hubo respuesta del servidor (problema de red)
         setError('No response received from the server');
       } else {
-        // Error en la configuración de la solicitud
         setError(`Error: ${err.message}`);
       }
     } finally {
@@ -195,6 +198,26 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userData }) => {
                 InputProps={{ style: { color: 'white' } }}
               />
               <IconButton onClick={() => handleEditClick('username')} sx={{ ml: 1 }}>
+                <EditIcon sx={{ color: 'lightgray' }} />
+              </IconButton>
+            </Box>
+
+            {/* Campo de Contraseña */}
+            <Box display="flex" alignItems="center">
+              <TextField
+                label="Password"
+                variant="outlined"
+                fullWidth
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                margin="normal"
+                type="password"
+                disabled={!editableFields.password}
+                InputLabelProps={{ style: { color: 'lightgray' } }}
+                InputProps={{ style: { color: 'white' } }}
+              />
+              <IconButton onClick={() => handleEditClick('password')} sx={{ ml: 1 }}>
                 <EditIcon sx={{ color: 'lightgray' }} />
               </IconButton>
             </Box>

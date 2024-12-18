@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
-    console.log('Sidebar Open:', !sidebarOpen);  // Log del estado de la barra lateral
+    console.log('Sidebar Open:', !sidebarOpen); // Log del estado de la barra lateral
   };
 
   const [userData, setUserData] = useState<UserData>({
@@ -39,6 +39,21 @@ export default function Dashboard() {
     unique_code: null,
   });
 
+  // Función para actualizar userData desde SettingsSection
+  const updateUserData = (updatedData: Partial<UserData>) => {
+    setUserData((prev) => ({
+      ...prev,
+      ...updatedData,
+    }));
+
+    // Sincroniza también con localStorage
+    if (updatedData.username) localStorage.setItem('username', updatedData.username);
+    if (updatedData.image_url) localStorage.setItem('image_url', updatedData.image_url);
+    if (updatedData.unique_code) localStorage.setItem('unique_code', updatedData.unique_code);
+
+    console.log('User Data updated:', updatedData); // Log para depuración
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
@@ -47,15 +62,13 @@ export default function Dashboard() {
     const image_url = localStorage.getItem('image_url');
     const unique_code = localStorage.getItem('unique_code');
 
+    console.log('User Data from localStorage:', { token, username, id, email, image_url, unique_code });
 
-    // Log de los datos del usuario recuperados desde localStorage
-    console.log('User Data from localStorage:', { token, username, id, email, image_url,unique_code });
-
-    setUserData({ token, username, id, email, image_url,unique_code });
+    setUserData({ token, username, id, email, image_url, unique_code });
   }, []);
 
   const handleMenuOptionSelect = (option: string) => {
-    console.log('Selected Menu Option:', option);  // Log de la opción del menú seleccionada
+    console.log('Selected Menu Option:', option); // Log de la opción del menú seleccionada
     setActiveTab(option);
   };
 
@@ -84,7 +97,7 @@ export default function Dashboard() {
         {/* Contenido Principal */}
         <Box flexGrow={1} p={3} bgcolor="background.default">
           {activeTab === 'dashboard' && <DashboardSection />}
-          {activeTab === 'schedules' && <SchedulesSection userData={userData}  />}
+          {activeTab === 'schedules' && <SchedulesSection userData={userData} />}
           {activeTab === 'projects' && <ProjectsSection userData={userData} />}
           {activeTab === 'chat' && <ChatIASection userData={userData} />}
           {activeTab === 'create' && <CreateNewProjectSection userData={userData} />}
@@ -95,6 +108,7 @@ export default function Dashboard() {
                 image_url: userData.image_url || '',
                 username: userData.username || '',
               }}
+              onUpdateUserData={updateUserData} // Pasa la función para sincronización
             />
           )}
         </Box>
