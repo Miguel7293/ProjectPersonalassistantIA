@@ -454,7 +454,19 @@ const handleMouseLeave = () => {
           {/* Cara frontal */}
           <Box sx={{ backfaceVisibility: 'hidden' }}>
             <Box component="img" src={project.image_url === 'Predeterminado' ? '/icon_2.png' : project.image_url} alt={project.name} sx={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: 2 }} />
-            <Typography variant="h6" color="#FFF" mt={2}>{project.name}</Typography>
+            <Typography
+              variant="h6"
+              color="#FFF"
+              mt={2}
+              sx={{
+                whiteSpace: 'nowrap',  // Evita el salto de línea
+                overflow: 'hidden',    // Oculta el contenido desbordante
+                textOverflow: 'ellipsis', // Agrega los puntos suspensivos
+                width: '100%',         // Asegura que el texto ocupe todo el ancho
+              }}
+            >
+              {project.name}
+            </Typography>            
             <Typography variant="body2">Inicio: {new Date(project.start_date).toLocaleDateString()}</Typography>
             <Box display="flex" justifyContent="space-between" alignItems="center">
               <Typography variant="body2">Fin: {new Date(project.end_date).toLocaleDateString()}</Typography>

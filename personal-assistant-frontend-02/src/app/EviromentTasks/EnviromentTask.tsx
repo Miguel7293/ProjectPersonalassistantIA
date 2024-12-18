@@ -29,8 +29,12 @@ import {
   Avatar,
   Slider,
   Popover,
+  Tooltip
 
 } from '@mui/material';
+
+
+
 
 import { DateRange } from 'react-date-range'; // Importación de react-date-range
 import { enGB } from 'date-fns/locale'; // Idioma en inglés (puedes cambiarlo a español)
@@ -96,16 +100,19 @@ const TaskManagement: React.FC = () => {
   
     // Usar directamente los valores almacenados para la condición
     if (storedProjectId && storedUserId) {
-      fetchTasks(storedProjectId, storedUserId);
+      fetchTasks();
     }
   }, []);
   
-  const fetchTasks = async (projectId: string, userId: string) => {
+  const fetchTasks = async () => {
+
+    const storedProjectId = localStorage.getItem('projectId');
+    const storedUserId = localStorage.getItem('userId');
     try {
       const response = await fetch('http://localhost:5000/api/v1/task/task/operation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sqlQuery: 'SELECT', Project_ID: projectId, user_id: userId }),
+        body: JSON.stringify({ sqlQuery: 'SELECT', Project_ID: storedProjectId, user_id: storedUserId }),
       });
   
       if (!response.ok) {
@@ -248,6 +255,9 @@ const TaskManagement: React.FC = () => {
       } catch (err) {
         console.error('Error al hacer la solicitud:', err);
       }
+
+      await fetchTasks();
+
     };
     
     
@@ -300,6 +310,8 @@ const TaskManagement: React.FC = () => {
       }
     
       setOpenEditDialog(false); // Cerrar el modal después de guardar
+      await fetchTasks();
+
     };
 
     const fetchCollaborators2 = () => {
@@ -371,7 +383,7 @@ const handleAddCollaborator2 = () => {
     
       // Usar directamente los valores almacenados para la condición
       if (storedProjectId && storedUserId) {
-        fetchTasks(storedProjectId, storedUserId);
+        fetchTasks();
       }
     }, []);
 
@@ -431,6 +443,9 @@ const handleSaveProgress = async () => {
   } catch (error) {
     console.error('Error al guardar el progreso:', error);
   }
+
+  await fetchTasks();
+
 };
 
 
@@ -502,34 +517,35 @@ const isOpen = Boolean(anchorEl);
 
 ////////////////////////////////////PARA LA ELIMINACION DE TAREA POR ID ///////////////////////////
 
-const handleDeleteTask = (taskId: number) => {
+const handleDeleteTask = async (taskId: number) => {
   const sqlQuery = {
     sqlQuery: "DELETE",
     Task_ID: taskId,
   };
 
-  // Hacer la solicitud POST a la API para eliminar la tarea
-  fetch("http://localhost:5000/api/v1/task/task/operation", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(sqlQuery),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.ok) {
-        console.log(`Tarea con ID ${taskId} eliminada exitosamente.`);
-        // Aquí actualizas el estado de las tareas eliminando la tarea con el ID correspondiente.
-        setTasks((prevTasks) => prevTasks.filter((task) => task.task_id !== taskId));
-      } else {
-        console.error("Error al eliminar la tarea:", data);
-      }
-    })
-    .catch((error) => {
-      console.error("Error de red:", error);
+  try {
+    const response = await fetch("http://localhost:5000/api/v1/task/task/operation", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sqlQuery),
     });
+
+    const data = await response.json();
+
+    if (data.ok) {
+      console.log(`Tarea con ID ${taskId} eliminada exitosamente.`);
+    } else {
+      console.error("Error al eliminar la tarea:", data);
+    }
+  } catch (error) {
+    console.error("Error de red:", error);
+  }
+  await fetchTasks();
+
 };
+
 
 
   return (
@@ -552,10 +568,10 @@ const handleDeleteTask = (taskId: number) => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(https://w.wallhaven.cc/full/we/wallhaven-we9kw6.jpg)', // Imagen de fondo
+          backgroundImage: 'url(https://w.wallhaven.cc/full/yj/wallhaven-yj9v9k.jpg)', // Imagen de fondo
           backgroundSize: backgroundSize,
           backgroundPosition: 'center',
-          filter: 'opacity(0.5)',
+          filter: 'opacity(0.7)',
           zIndex: -1,
         }}
       />
@@ -696,8 +712,22 @@ const handleDeleteTask = (taskId: number) => {
   onClose={handleTaskDialogToggle}
   sx={{
     '& .MuiDialog-paper': {
-      width: '80%', // Este es el ancho que se ajusta al 80% de la pantalla
-      maxWidth: '800px', // Esto es el ancho máximo para evitar que se haga demasiado grande
+      width: '80%',
+      maxWidth: '800px',
+      backgroundColor: 'rgba(0, 0, 0, 0.85)', // Fondo negro casi sólido con mínima transparencia
+      color: '#ffffff', // Texto blanco
+      boxShadow: '0px 6px 25px rgba(0, 0, 0, 0.8)', // Sombra más pronunciada para realce
+      borderRadius: '12px', // Bordes redondeados para un diseño más moderno
+    },
+    '& .MuiDialogTitle-root': {
+      color: '#f5f5f5', // Título en blanco puro para destacar
+    },
+    '& .MuiDialogContent-root': {
+      color: '#dcdcdc', // Texto del contenido en gris claro
+    },
+    '& .MuiDialogActions-root': {
+      borderTop: '1px solid rgba(255, 255, 255, 0.1)', // Separador aún más sutil
+      justifyContent: 'space-between', // Ajuste de las acciones
     },
   }}
 >
@@ -732,14 +762,17 @@ const handleDeleteTask = (taskId: number) => {
             onChange={(e) => setTitle(e.target.value)}
             sx={{ marginBottom: 2 }}
           />
-          <TextField
-            fullWidth
-            label="Descripción"
-            variant="outlined"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            sx={{ marginBottom: 2 }}
-          />
+<TextField
+  label="Descripción"
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  fullWidth
+  margin="normal"
+  multiline
+  rows={4}
+  variant="outlined" // Variante para bordes
+/>
+
           <FormControl fullWidth sx={{ marginBottom: 2 }}>
             <InputLabel>Prioridad</InputLabel>
             <Select
@@ -823,25 +856,49 @@ const handleDeleteTask = (taskId: number) => {
 </Dialog>
 
   
-    {/* Grupo de Avatares como Botón */}
-    <Box
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      cursor: "pointer", // Cursor interactivo
-      "&:hover": {
-        opacity: 0.8,
-      },
-    }}
-    onClick={() => {
-      console.log("Se hizo clic en el grupo de avatares");
-      handleCollaboratorsDialogToggleSeeAll();
-    }}
-  >
-    {collaboratorsProject.length === 0 ? (
-      <Typography variant="body1">Cargando colaboradores...</Typography>
-    ) : (
-      <AvatarGroup max={4}>
+{/* Grupo de Avatares como Botón */}
+<Box
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    cursor: 'pointer', // Cursor interactivo
+    transition: 'opacity 0.3s ease, transform 0.3s ease', // Animaciones suaves
+    '&:hover': {
+      opacity: 0.8, // Cambio sutil en opacidad
+      transform: 'scale(1.05)', // Efecto de agrandamiento al pasar el cursor
+    },
+  }}
+  onClick={() => {
+    console.log('Se hizo clic en el grupo de avatares');
+    handleCollaboratorsDialogToggleSeeAll();
+  }}
+>
+  {collaboratorsProject.length === 0 ? (
+    <Typography
+      variant="body1"
+      sx={{
+        color: '#ffffff', // Texto blanco
+        fontWeight: 'bold',
+      }}
+    >
+      Cargando colaboradores...
+    </Typography>
+  ) : (
+    <>
+      <AvatarGroup
+        max={4}
+        sx={{
+          '& .MuiAvatar-root': {
+            width: 48, // Tamaño más grande para avatares
+            height: 48,
+            fontSize: '1rem', // Ajuste del texto dentro de los avatares
+            transition: 'transform 0.3s ease', // Animación para los avatares
+            '&:hover': {
+              transform: 'scale(1.1)', // Efecto de agrandamiento al pasar el mouse sobre el avatar
+            },
+          },
+        }}
+      >
         {collaboratorsProject.slice(0, 4).map((collaborator) => {
           return (
             <Avatar
@@ -852,78 +909,126 @@ const handleDeleteTask = (taskId: number) => {
           );
         })}
       </AvatarGroup>
-    )}
-  </Box>
+    </>
+  )}
+</Box>
 
-    {/* Dialogo de colaboradores */}
-    <Dialog
-      open={openCollaboratorsDialogSeeAll}
-      onClose={() => {
-        console.log("Cerrando el diálogo");
+
+{/* Diálogo de colaboradores mejorado */}
+<Dialog
+  open={openCollaboratorsDialogSeeAll}
+  onClose={() => {
+    console.log("Cerrando el diálogo");
+    setOpenCollaboratorsDialogSeeAll(false);
+  }}
+  fullWidth
+  maxWidth="sm"
+  sx={{
+    '& .MuiDialog-paper': {
+      backgroundColor: 'rgba(0, 0, 0, 0.9)', // Fondo oscuro con transparencia
+      color: '#ffffff', // Texto blanco
+      borderRadius: '16px', // Bordes redondeados
+      padding: '16px', // Espaciado interno
+      boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.5)', // Sombra más prominente
+    },
+  }}
+>
+  <DialogTitle
+    sx={{
+      textAlign: 'center',
+      fontSize: '1.5rem',
+      fontWeight: 'bold',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.2)', // Separador decorativo
+      marginBottom: '16px',
+    }}
+  >
+    Colaboradores
+  </DialogTitle>
+  <DialogContent>
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 3,
+        justifyContent: 'center',
+      }}
+    >
+      {collaboratorsProject.map((collaborator) => {
+        console.log('Renderizando colaborador en el diálogo:', collaborator);
+        return (
+          <Box
+            key={collaborator.user_id}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              padding: 3,
+              backgroundColor: 'rgba(0, 0, 0, 0.1)', // Fondo semitransparente para las cartas
+              borderRadius: '12px',
+              width: 200,
+              textAlign: 'center',
+              transition: 'transform 0.3s ease, background-color 0.3s ease',
+              cursor: 'pointer',
+              '&:hover': {
+                transform: 'scale(1.05)', // Agrandamiento al pasar el mouse
+                backgroundColor: 'rgba(70, 8, 8, 0.2)', // Fondo más claro al pasar el mouse
+              },
+              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.3)', // Sombra para las cartas
+            }}
+          >
+            <Avatar
+              src={collaborator.image_url}
+              alt={collaborator.name}
+              sx={{
+                width: 80, // Avatares más grandes
+                height: 80,
+                marginBottom: 2,
+                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)', // Sombra en el avatar
+              }}
+            />
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              {collaborator.name}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: 1 }}
+            >
+              {collaborator.email}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{ color: 'rgba(255, 255, 255, 0.5)' }}
+            >
+              Código: {collaborator.unique_code?.trim() || 'N/A'}
+            </Typography>
+          </Box>
+        );
+      })}
+    </Box>
+  </DialogContent>
+  <DialogActions
+    sx={{
+      borderTop: '1px solid rgba(255, 255, 255, 0.2)', // Separador decorativo
+      justifyContent: 'center', // Centrar el botón
+    }}
+  >
+    <Button
+      onClick={() => {
+        console.log('Cerrando el diálogo con el botón de acción');
         setOpenCollaboratorsDialogSeeAll(false);
       }}
-      fullWidth
-      maxWidth="sm"
+      sx={{
+        color: '#ffffff', // Texto blanco
+        backgroundColor: 'rgba(0, 0, 0, 0.1)', // Fondo semitransparente
+        '&:hover': {
+          backgroundColor: 'rgba(70, 8, 8, 0.2)', // Fondo más claro al pasar el mouse
+        },
+      }}
     >
-      <DialogTitle>Colaboradores</DialogTitle>
-      <DialogContent>
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 2,
-            justifyContent: "center",
-          }}
-        >
-          {collaboratorsProject.map((collaborator) => {
-            console.log("Renderizando colaborador en el diálogo:", collaborator);
-            return (
-              <Box
-                key={collaborator.user_id}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  padding: 2,
-                  border: "1px solid #ccc",
-                  borderRadius: 2,
-                  width: 150,
-                  textAlign: "center",
-                  cursor: "pointer",
-                  "&:hover": {
-                    backgroundColor: "#f5f5f5",
-                  },
-                }}
-              >
-                <Avatar
-                  src={collaborator.image_url}
-                  alt={collaborator.name}
-                  sx={{ width: 56, height: 56, marginBottom: 1 }}
-                />
-                <Typography variant="body1">{collaborator.name}</Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {collaborator.email}
-                </Typography>
-                <Typography variant="caption" color="textSecondary">
-                  Código: {collaborator.unique_code?.trim() || "N/A"}
-                </Typography>
-              </Box>
-            );
-          })}
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={() => {
-            console.log("Cerrando el diálogo con el botón de acción");
-            setOpenCollaboratorsDialogSeeAll(false);
-          }}
-          color="primary"
-        >
-          Cerrar
-        </Button>
-      </DialogActions>
-    </Dialog>
+      Cerrar
+    </Button>
+  </DialogActions>
+</Dialog>
 
 
 
@@ -936,40 +1041,49 @@ const handleDeleteTask = (taskId: number) => {
           {/* Contenedor scrollable de tareas */}
           <Box
             sx={{
-              overflowY: 'auto', // Habilita el desplazamiento independiente
+              overflowY: 'auto',
               flex: 1,
               padding: 2,
               '&::-webkit-scrollbar': {
-                width: '8px', // Ancho de la barra de desplazamiento
+                width: '8px',
               },
               '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(0, 0, 0, 0.4)', // Transparencia del pulgar
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
                 borderRadius: '4px',
               },
               '&::-webkit-scrollbar-thumb:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.6)', // Más oscuro al pasar el cursor
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
               },
               '&::-webkit-scrollbar-track': {
-                backgroundColor: 'rgba(0, 0, 0, 0.1)', // Fondo del track con transparencia
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
               },
             }}
           >
             <Table>
               <TableHead>
-                <TableRow>
-                  <TableCell>Título</TableCell>
-                  <TableCell>Fecha Inicio</TableCell>
-                  <TableCell>Fecha Límite</TableCell>
-                  <TableCell>Estado</TableCell>
-                  <TableCell>Puntos</TableCell>
-                  <TableCell>Prioridad</TableCell>
-                  <TableCell>%</TableCell>
-                  <TableCell>Acciones</TableCell>
-                </TableRow>
+              <TableRow>
+                <TableCell><Typography variant="subtitle1">Título</Typography></TableCell>
+                <TableCell><Typography variant="subtitle1">Fecha Inicio</Typography></TableCell>
+                <TableCell><Typography variant="subtitle1">Fecha Límite</Typography></TableCell>
+                <TableCell><Typography variant="subtitle1">Estado</Typography></TableCell>
+                <TableCell><Typography variant="subtitle1">Puntos</Typography></TableCell>
+                <TableCell><Typography variant="subtitle1">Prioridad</Typography></TableCell>
+                <TableCell><Typography variant="subtitle1">%</Typography></TableCell>
+                <TableCell><Typography variant="subtitle1">Acciones</Typography></TableCell>
+              </TableRow>
               </TableHead>
               <TableBody>
               {tasks.map((task: any) => (
-                <TableRow key={task.id}>
+                <TableRow key={task.id}
+                sx={{
+                  cursor: 'pointer',
+                  transition: 'background-color 0.3s ease, transform 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                    transform: 'scale(1.02)',
+                  },
+                }}
+                >
                   <TableCell>{task.title}</TableCell>
                   <TableCell>{task.startDate.toLocaleDateString()}</TableCell>
                   <TableCell>{task.endDate?.toLocaleDateString() ?? 'No definido'}</TableCell>
@@ -986,66 +1100,73 @@ const handleDeleteTask = (taskId: number) => {
                   {task.role === 'ADMIN' && (
       <div>
         {/* Botón Editar */}
-        <Button 
-          onClick={() => {
-            setSelectedTaskId(task.id); 
-            setTaskData(task); // Aquí almacenamos la tarea seleccionada
-            setTitle(task.title); // Llenamos los campos con la información de la tarea
-            setDescription(task.description || ''); 
-            setStartDate(new Date(task.startDate));
-            setEndDate(new Date(task.endDate || new Date()));
-            setPriority(task.priority || 'HIGH');
-            setAssignedPoints(task.assignedPoints || 0);
-            setCollaborators(task.collaborators || []);
-            setOpenEditDialog(true); // Abrir el modal
-          }} 
-          color="primary"
-        >
-          Editar
-        </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        setSelectedTaskId(task.id);
+                        setTaskData(task);
+                        setTitle(task.title);
+                        setDescription(task.description || '');
+                        setStartDate(new Date(task.startDate));
+                        setEndDate(new Date(task.endDate || new Date()));
+                        setPriority(task.priority || 'HIGH');
+                        setAssignedPoints(task.assignedPoints || 0);
+                        setCollaborators(task.collaborators || []);
+                        setOpenEditDialog(true);
+                      }}
+                      color="primary"
+                    >
+                      Editar
+                    </Button>
 
         {/* Botón Progreso */}
-        <Button
-          onClick={() => {
-            setSelectedTaskId(task.id); 
-            setTask(task); // Almacena la tarea seleccionada
-            setAssignedPoints(task.assignedPoints || 0);
-            setTotal_Completed(task.totalCompleted || 0);
-            setRemainingPoints((task.assignedPoints || 0) - (task.totalCompleted || 0));
-            setCompletedPoints(0); // Resetea los puntos a avanzar
-            setOpenDialog(true); // Abre el diálogo
-          }}
-          color="secondary"
-        >
-          Progreso
-        </Button>
+                      <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        setSelectedTaskId(task.id);
+                        setTask(task);
+                        setAssignedPoints(task.assignedPoints || 0);
+                        setTotal_Completed(task.totalCompleted || 0);
+                        setRemainingPoints((task.assignedPoints || 0) - (task.totalCompleted || 0));
+                        setCompletedPoints(0);
+                        setOpenDialog(true);
+                      }}
+                      color="secondary"
+                    >
+                      Progreso
+                    </Button>
 
         {/* Botón para mostrar detalles con Popover */}
-        <Button
-          onClick={(event) => handlePopoverOpen(event, task.id, task.description || "")}
-          color="secondary"
-        >
-          Det.
-        </Button>
+        <Tooltip title={task.description || ''}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={(event) => handlePopoverOpen(event, task.id, task.description || '')}
+                        color="secondary"
+                      >
+                        Det.
+                      </Button>
+                    </Tooltip>
 
         {/* Botón Eliminar */}
         <Button
-          onClick={() => handleDeleteTask(task.id)}
-          color="error"
-          variant="text"
-          size="small"
-          sx={{
-            fontWeight: 'bold',
-            color: '#d32f2f',
-            '&:hover': {
-              backgroundColor: 'rgba(211, 47, 47, 0.1)',
-              transform: 'scale(1.05)',
-            },
-            transition: 'all 0.3s ease',
-          }}
-        >
-          Eliminar
-        </Button>
+                      variant="text"
+                      size="small"
+                      onClick={() => handleDeleteTask(task.id)}
+                      sx={{
+                        fontWeight: 'bold',
+                        color: '#d32f2f',
+                        '&:hover': {
+                          backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                          transform: 'scale(1.05)',
+                        },
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      Eliminar
+                    </Button>
       </div>
     )}
 
@@ -1054,39 +1175,43 @@ const handleDeleteTask = (taskId: number) => {
         {task.editedPermitted ? (
           <>
             {/* Botón Editar */}
-            <Button 
-              onClick={() => {
-                setSelectedTaskId(task.id); 
-                setTaskData(task); // Aquí almacenamos la tarea seleccionada
-                setTitle(task.title); // Llenamos los campos con la información de la tarea
-                setDescription(task.description || ''); 
-                setStartDate(new Date(task.startDate));
-                setEndDate(new Date(task.endDate || new Date()));
-                setPriority(task.priority || 'HIGH');
-                setAssignedPoints(task.assignedPoints || 0);
-                setCollaborators(task.collaborators || []);
-                setOpenEditDialog(true); // Abrir el modal
-              }} 
-              color="primary"
-            >
-              Editar
-            </Button>
-
-            {/* Botón Progreso */}
             <Button
-              onClick={() => {
-                setSelectedTaskId(task.id); 
-                setTask(task); // Almacena la tarea seleccionada
-                setAssignedPoints(task.assignedPoints || 0);
-                setTotal_Completed(task.totalCompleted || 0);
-                setRemainingPoints((task.assignedPoints || 0) - (task.totalCompleted || 0));
-                setCompletedPoints(0); // Resetea los puntos a avanzar
-                setOpenDialog(true); // Abre el diálogo
-              }}
-              color="secondary"
-            >
-              Progreso
-            </Button>
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        setSelectedTaskId(task.id);
+                        setTaskData(task);
+                        setTitle(task.title);
+                        setDescription(task.description || '');
+                        setStartDate(new Date(task.startDate));
+                        setEndDate(new Date(task.endDate || new Date()));
+                        setPriority(task.priority || 'HIGH');
+                        setAssignedPoints(task.assignedPoints || 0);
+                        setCollaborators(task.collaborators || []);
+                        setOpenEditDialog(true);
+                      }}
+                      color="primary"
+                    >
+                      Editar
+                    </Button>
+
+        {/* Botón Progreso */}
+                      <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        setSelectedTaskId(task.id);
+                        setTask(task);
+                        setAssignedPoints(task.assignedPoints || 0);
+                        setTotal_Completed(task.totalCompleted || 0);
+                        setRemainingPoints((task.assignedPoints || 0) - (task.totalCompleted || 0));
+                        setCompletedPoints(0);
+                        setOpenDialog(true);
+                      }}
+                      color="secondary"
+                    >
+                      Progreso
+                    </Button>
 
             {/* Botón para mostrar detalles con Popover */}
             <Button
@@ -1098,35 +1223,58 @@ const handleDeleteTask = (taskId: number) => {
 
             {/* Botón Eliminar */}
             <Button
-              onClick={() => handleDeleteTask(task.id)}
-              color="error"
-              variant="text"
-              size="small"
-              sx={{
-                fontWeight: 'bold',
-                color: '#d32f2f',
-                '&:hover': {
-                  backgroundColor: 'rgba(211, 47, 47, 0.1)',
-                  transform: 'scale(1.05)',
-                },
-                transition: 'all 0.3s ease',
-              }}
-            >
-              Eliminar
-            </Button>
+                      variant="text"
+                      size="small"
+                      onClick={() => handleDeleteTask(task.id)}
+                      sx={{
+                        fontWeight: 'bold',
+                        color: '#d32f2f',
+                        '&:hover': {
+                          backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                          transform: 'scale(1.05)',
+                        },
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      Eliminar
+                    </Button>
           </>
         ) : (
+          <Tooltip title={task.description || ''}>
           <Button
-          onClick={(event) => handlePopoverOpen(event, task.id, task.description || "")}
-          color="secondary"
-        >
-          Det.
-        </Button>        )}
+            variant="outlined"
+            size="small"
+            onClick={(event) => handlePopoverOpen(event, task.id, task.description || '')}
+            color="secondary"
+          >
+            Det.
+          </Button>
+        </Tooltip>
+       )}
       </div>
     )}
                   {/* Modal para los datos de edit */}
-                  <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
-  <DialogTitle>Editar Tarea</DialogTitle>
+                  <Dialog
+  open={openEditDialog}
+  onClose={() => setOpenEditDialog(false)}
+  fullWidth
+  maxWidth="md"
+  sx={{
+    '& .MuiDialog-paper': {
+      backgroundColor: 'rgba(0, 0, 0, 0.9)', // Fondo oscuro con transparencia para el diálogo
+      color: '#ffffff',
+      borderRadius: '16px',
+      padding: '24px',
+      boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.8)',
+    },
+  }}
+  BackdropProps={{
+    sx: {
+      backgroundColor: 'rgba(0, 0, 0, 0.4)', // Fondo detrás del diálogo con transparencia
+      backdropFilter: 'blur(4px)', // Efecto de desenfoque para un diseño más moderno
+    },
+  }}
+>  <DialogTitle>Editar Tarea</DialogTitle>
   <DialogContent>
     <form>
       <TextField
@@ -1260,70 +1408,140 @@ const handleDeleteTask = (taskId: number) => {
 
 
 
-<Dialog open={openDialog} onClose={closeDialog}>
-  <DialogTitle>Progreso de la tarea</DialogTitle>
+<Popover
+  open={openDialog}
+  onClose={closeDialog}
+  anchorEl={anchorEl} // Elemento al que estará anclado
+  anchorOrigin={{
+    vertical: 'center', // Aparece centrado verticalmente al botón
+    horizontal: 'right', // Aparece a la derecha del botón
+  }}
+  transformOrigin={{
+    vertical: 'center', // Ajusta el origen de transformación para alinearse mejor
+    horizontal: 'left', // Alinea con el lado izquierdo del popover
+  }}
+  sx={{
+    '& .MuiPopover-paper': {
+      backgroundColor: 'rgba(0, 0, 0, 0.9)', // Fondo oscuro con transparencia
+      color: '#ffffff', // Texto blanco
+      borderRadius: '12px', // Bordes redondeados
+      boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.5)', // Sombra para el popover
+      padding: '16px', // Espaciado interno
+      minWidth: '300px', // Ancho mínimo para una buena presentación
+    },
+  }}
+>
+  <DialogTitle
+    sx={{
+      fontSize: '1.25rem',
+      fontWeight: 'bold',
+      color: '#236EFA', // Color destacado para el título
+      textAlign: 'center',
+    }}
+  >
+    Progreso de la tarea
+  </DialogTitle>
   <DialogContent>
-    <Typography variant="body1">
-      Puntos asignados: {assignedPoints}
+    <Typography variant="body1" sx={{ marginBottom: 1 }}>
+      Puntos asignados: <b>{assignedPoints}</b>
     </Typography>
-    <Typography variant="body1">
-      Puntos completados: {Total_Completed}
+    <Typography variant="body1" sx={{ marginBottom: 1 }}>
+      Puntos completados: <b>{Total_Completed}</b>
     </Typography>
-    <Typography variant="body1">
-      Puntos restantes: {remainingPoints}
+    <Typography variant="body1" sx={{ marginBottom: 2 }}>
+      Puntos restantes: <b>{remainingPoints}</b>
     </Typography>
-    <Box marginTop={2}>
+
+    {/* Renderiza el slider solo si remainingPoints es mayor a 0 */}
+    {remainingPoints > 0 && (
       <Slider
         value={completedPoints}
         onChange={handleSliderChange}
         min={0}
-        max={remainingPoints} // Límite según puntos restantes
+        max={remainingPoints}
         step={1}
         valueLabelDisplay="auto"
         valueLabelFormat={(value) => `${value}/${remainingPoints}`}
+        sx={{
+          '& .MuiSlider-thumb': {
+            backgroundColor: '#236EFA', // Color del indicador del slider
+          },
+          '& .MuiSlider-track': {
+            backgroundColor: '#236EFA', // Color de la pista del slider
+          },
+          '& .MuiSlider-rail': {
+            backgroundColor: '#bdbdbd', // Color de la pista no completada
+          },
+        }}
       />
-    </Box>
+    )}
   </DialogContent>
-  <DialogActions>
-    <Button onClick={closeDialog} color="primary">
+  <DialogActions
+    sx={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      borderTop: '1px solid rgba(255, 255, 255, 0.2)', // Línea divisoria
+      paddingTop: 2,
+    }}
+  >
+    <Button onClick={closeDialog} sx={{ color: '#236EFA', fontWeight: 'bold' }}>
       Cancelar
     </Button>
-    <Button onClick={handleSaveProgress} color="primary">
+    <Button
+      onClick={handleSaveProgress}
+      sx={{
+        backgroundColor: '#236EFA',
+        color: '#ffffff',
+        fontWeight: 'bold',
+        '&:hover': {
+          backgroundColor: '#236EFA',
+        },
+      }}
+    >
       {completedPoints === remainingPoints ? 'Completar' : 'Guardar'}
     </Button>
   </DialogActions>
-</Dialog>
+</Popover>
 
 
 
 
                   </TableCell>
                     {/* Popover para mostrar detalles de la tarea */}
-  <Popover
-    open={isOpen}
-    anchorEl={anchorEl}
-    onClose={handlePopoverClose}
-    anchorOrigin={{
-      vertical: "center",
-      horizontal: "left",
-    }}
-    transformOrigin={{
-      vertical: "center",
-      horizontal: "right",
-    }}
-  >
-    <Box sx={{ p: 2, maxWidth: 300 }}>
-      <Typography variant="h6" gutterBottom>
-        Detalles de la Tarea
-      </Typography>
-      <Typography variant="body1">
-        <strong>ID:</strong> {selectedTaskId}
-      </Typography>
-      <Typography variant="body2" sx={{ mt: 1 }}>
-        <strong>Descripción:</strong> {description}
-      </Typography>
-    </Box>
-  </Popover>
+                    <Popover
+  open={isOpen}
+  anchorEl={anchorEl}
+  onClose={handlePopoverClose}
+  anchorOrigin={{
+    vertical: "center",
+    horizontal: "left",
+  }}
+  transformOrigin={{
+    vertical: "center",
+    horizontal: "right",
+  }}
+  sx={{
+    '& .MuiPopover-paper': {
+      backgroundColor: 'rgba(0, 0, 0, 0.88)', // Fondo más transparente
+      color: '#ffffff', // Texto blanco
+      borderRadius: '12px', // Bordes redondeados
+      boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)', // Sombra suave para el popover
+      padding: '16px', // Espaciado interno
+      minWidth: '300px', // Ancho mínimo para una buena presentación
+      backdropFilter: 'blur(5px)', // Efecto de desenfoque de fondo
+    },
+  }}
+>
+  <Box sx={{ p: 2 }}>
+    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#236EFA' }} gutterBottom>
+      Detalles de la Tarea
+    </Typography>
+    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+      <strong>Descripción:</strong> {description || "Sin descripción disponible"}
+    </Typography>
+  </Box>
+</Popover>
+
                 </TableRow>
 
                 ))}

@@ -40,13 +40,22 @@ const update = async ({ Project_ID, Name, Start_Date, End_Date, Max_Points, Imag
 };
 
 const deleteProject = async (Project_ID) => {
-    const query = {
+    // Eliminar tareas asociadas al proyecto
+    const deleteTasksQuery = {
+        text: 'DELETE FROM TASK WHERE Project_ID = $1',
+        values: [Project_ID],
+    };
+    await db.query(deleteTasksQuery); // Elimina todas las tareas relacionadas al proyecto
+
+    // Ahora, eliminamos el proyecto
+    const deleteProjectQuery = {
         text: 'DELETE FROM PROJECT WHERE Project_ID = $1 RETURNING *',
         values: [Project_ID],
     };
-    const { rows } = await db.query(query);
-    return rows[0];
+    const { rows } = await db.query(deleteProjectQuery); // Elimina el proyecto
+    return rows[0]; // Retorna el proyecto eliminado
 };
+
 
 const selectByUserId = async (User_ID) => {
     const query = {
