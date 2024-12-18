@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
-    console.log('Sidebar Open:', !sidebarOpen); // Log del estado de la barra lateral
+    console.log('Sidebar Open:', !sidebarOpen);
   };
 
   const [userData, setUserData] = useState<UserData>({
@@ -39,19 +39,17 @@ export default function Dashboard() {
     unique_code: null,
   });
 
-  // Función para actualizar userData desde SettingsSection
   const updateUserData = (updatedData: Partial<UserData>) => {
     setUserData((prev) => ({
       ...prev,
       ...updatedData,
     }));
 
-    // Sincroniza también con localStorage
     if (updatedData.username) localStorage.setItem('username', updatedData.username);
     if (updatedData.image_url) localStorage.setItem('image_url', updatedData.image_url);
     if (updatedData.unique_code) localStorage.setItem('unique_code', updatedData.unique_code);
 
-    console.log('User Data updated:', updatedData); // Log para depuración
+    console.log('User Data updated:', updatedData);
   };
 
   useEffect(() => {
@@ -68,13 +66,26 @@ export default function Dashboard() {
   }, []);
 
   const handleMenuOptionSelect = (option: string) => {
-    console.log('Selected Menu Option:', option); // Log de la opción del menú seleccionada
+    console.log('Selected Menu Option:', option);
     setActiveTab(option);
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setUserData({
+      token: null,
+      username: null,
+      id: null,
+      email: null,
+      image_url: null,
+      unique_code: null,
+    });
+    console.log('User logged out');
+    window.location.href = '/';
   };
 
   return (
     <Box display="flex" flexDirection="column" minHeight="100vh">
-      {/* Barra Superior */}
       <Box
         sx={{
           position: 'sticky',
@@ -88,13 +99,13 @@ export default function Dashboard() {
           image_url={userData.image_url}
           onMenuClick={toggleSidebar}
           onMenuOptionSelect={handleMenuOptionSelect}
+          onLogout={handleLogout}
         />
       </Box>
 
       <Box display="flex" flexGrow={1} sx={{ marginTop: '64px' }}>
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} sidebarOpen={sidebarOpen} />
 
-        {/* Contenido Principal */}
         <Box flexGrow={1} p={3} bgcolor="background.default">
           {activeTab === 'dashboard' && <DashboardSection />}
           {activeTab === 'schedules' && <SchedulesSection userData={userData} />}
@@ -108,7 +119,7 @@ export default function Dashboard() {
                 image_url: userData.image_url || '',
                 username: userData.username || '',
               }}
-              onUpdateUserData={updateUserData} // Pasa la función para sincronización
+              onUpdateUserData={updateUserData}
             />
           )}
         </Box>

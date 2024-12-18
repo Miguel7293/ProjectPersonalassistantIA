@@ -1,5 +1,3 @@
-'use client';
-
 import { AppBar, Toolbar, Typography, IconButton, Avatar, Box, Menu, MenuItem } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useState } from 'react';
@@ -9,9 +7,10 @@ interface TopBarProps {
   image_url: string | null; // URL de la imagen del avatar
   onMenuClick: () => void; // Función que se ejecuta al hacer clic en el botón del menú
   onMenuOptionSelect: (option: string) => void; // Función para cambiar de sección
+  onLogout: () => void; // Función para manejar el logout
 }
 
-const TopBar: React.FC<TopBarProps> = ({ userName, image_url, onMenuClick, onMenuOptionSelect }) => {
+const TopBar: React.FC<TopBarProps> = ({ userName, image_url, onMenuClick, onMenuOptionSelect, onLogout }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -25,6 +24,11 @@ const TopBar: React.FC<TopBarProps> = ({ userName, image_url, onMenuClick, onMen
   const handleMenuOptionClick = (option: string) => {
     handleCloseMenu();
     onMenuOptionSelect(option); // Notificar al Dashboard sobre la selección
+  };
+
+  const handleLogoutClick = () => {
+    handleCloseMenu();
+    onLogout(); // Ejecutar la función de logout
   };
 
   return (
@@ -68,10 +72,10 @@ const TopBar: React.FC<TopBarProps> = ({ userName, image_url, onMenuClick, onMen
             horizontal: 'right',
           }}
         >
-          <MenuItem onClick={() => handleMenuOptionClick('dashboard')}>Dashboard</MenuItem>
           <MenuItem onClick={() => handleMenuOptionClick('schedules')}>Notifications</MenuItem>
           <MenuItem onClick={() => handleMenuOptionClick('projects')}>Projects</MenuItem>
           <MenuItem onClick={() => handleMenuOptionClick('settings')}>Settings</MenuItem>
+          <MenuItem onClick={handleLogoutClick}>Logout</MenuItem>
         </Menu>
       </Toolbar>
     </AppBar>
