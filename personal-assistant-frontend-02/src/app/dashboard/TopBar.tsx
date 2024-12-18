@@ -69,7 +69,7 @@ const TopBar: React.FC<TopBarProps> = ({ userName, image_url, onMenuClick, onMen
           }}
         >
           <MenuItem onClick={() => handleMenuOptionClick('dashboard')}>Dashboard</MenuItem>
-          <MenuItem onClick={() => handleMenuOptionClick('schedules')}>Schedules</MenuItem>
+          <MenuItem onClick={() => handleMenuOptionClick('schedules')}>Notifications</MenuItem>
           <MenuItem onClick={() => handleMenuOptionClick('projects')}>Projects</MenuItem>
           <MenuItem onClick={() => handleMenuOptionClick('settings')}>Settings</MenuItem>
         </Menu>
