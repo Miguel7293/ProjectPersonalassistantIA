@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Typography, Card, CardContent, Grid, Divider, Button, Avatar } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // Datos simulados para los gráficos
@@ -24,6 +24,40 @@ const DashboardSection = () => {
     engagementRate: 76,
   });
 
+  // Reloj
+  const [currentTime, setCurrentTime] = useState<string>('');
+  const [currentDate, setCurrentDate] = useState<string>('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const formattedTime = `${hours % 12 || 12}:${minutes < 10 ? '0' + minutes : minutes} ${ampm}`;
+
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      };
+      const formattedDate = now.toLocaleDateString('en-US', options);
+
+      setCurrentTime(formattedTime);
+      setCurrentDate(formattedDate);
+    };
+
+    // Actualiza cada segundo
+    const interval = setInterval(updateTime, 1000);
+
+    // Llamada inicial
+    updateTime();
+
+    // Limpieza del intervalo al desmontar el componente
+    return () => clearInterval(interval);
+  }, []);
+
   // Comentarios generados por IA
   const getIAComentary = () => {
     const comments = [
@@ -34,31 +68,59 @@ const DashboardSection = () => {
     ];
     setIaComment(comments[Math.floor(Math.random() * comments.length)]);
   };
+  const tasks = 5;
+
+  const getGreeting = () => {
+    const currentHour = new Date().getHours();
+
+    if (currentHour >= 5 && currentHour < 12) {
+      return "Good Morning";
+    } else if (currentHour >= 12 && currentHour < 18) {
+      return "Good Afternoon";
+    } else {
+      return "Good Evening";
+    }
+  };
+  const greeting = getGreeting(); // Obtener el saludo dinámicamente
+
 
   return (
     <Box sx={{ padding: '20px', backgroundColor: '#121212', minHeight: '100vh' }}>
-      {/* Título principal */}
-      <Typography variant="h4" gutterBottom sx={{ color: '#E0E0E0' }}>
-        AI Performance Dashboard
-      </Typography>
-      <Divider sx={{ marginBottom: '20px', bgcolor: '#333' }} />
-
-      {/* Sección de Perfil de Usuario */}
-      <Box sx={{ marginBottom: '30px', display: 'flex', alignItems: 'center' }}>
-        <Avatar
-          alt="User Avatar"
-          src="https://w.wallhaven.cc/full/w8/wallhaven-w8y3y6.png" // Foto de perfil por defecto
-          sx={{ width: 80, height: 80, marginRight: '20px' }}
-        />
-        <Box>
-          <Typography variant="h6" sx={{ color: '#E0E0E0' }}>
-            Subaru Kun
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Re:life | Isekai Specialist
-          </Typography>
-        </Box>
+    <Box sx={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Reloj y fecha a la izquierda */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <Typography variant="h4" sx={{ color: '#E0E0E0', fontSize: '3rem' }}> {/* Tamaño más grande para la hora */}
+          {currentTime}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {currentDate}
+        </Typography>
       </Box>
+
+
+    </Box>
+
+    <Divider sx={{ marginBottom: '20px', bgcolor: '#333' }} />
+
+    <Box sx={{ marginBottom: '40px', display: 'flex', alignItems: 'center' }}>
+      {/* Avatar y saludo juntos */}
+      <Avatar
+        alt="User Avatar"
+        src="https://w.wallhaven.cc/full/w8/wallhaven-w8y3y6.png" // Foto de perfil por defecto
+        sx={{ width: 80, height: 80, marginRight: '20px' }}
+      />
+
+      <Box>
+        <Typography variant="h3" sx={{ color: '#E0E0E0', fontWeight: 'bold' }}>
+          {greeting}, User
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          You have {tasks} tasks today.
+        </Typography>
+      </Box>
+    </Box>
+
+
 
       {/* Contenido del Dashboard */}
       <Grid container spacing={3}>

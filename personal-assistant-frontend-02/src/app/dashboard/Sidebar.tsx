@@ -16,7 +16,7 @@ interface SidebarProps {
 const Sidebar = ({ activeTab, setActiveTab, sidebarOpen }: SidebarProps) => {
   const menuItems = [
     { label: 'Dashboard', icon: <DashboardIcon />, id: 'dashboard' },
-    { label: 'Schedules', icon: <ScheduleIcon />, id: 'schedules' },
+    { label: 'Notifications', icon: <ScheduleIcon />, id: 'schedules' },
     { label: 'Projects', icon: <FolderIcon />, id: 'projects' },
     { label: 'Chat IA', icon: <ChatIcon />, id: 'chat' },
     { label: 'Create Project', icon: <AddCircleIcon />, id: 'create' },
