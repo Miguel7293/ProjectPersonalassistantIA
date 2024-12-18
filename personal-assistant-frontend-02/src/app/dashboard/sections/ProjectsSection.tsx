@@ -419,6 +419,8 @@ const handleMouseLeave = () => {
           if (!userData?.id) return;
           localStorage.setItem('projectId', project.project_id.toString());
           localStorage.setItem('userId', userData.id.toString());
+          localStorage.setItem('userRol', project.role.toString());
+
           router.push('/EviromentTasks');
         }}
         onMouseEnter={() => handleMouseEnter(project.project_id)}
@@ -459,8 +461,13 @@ const handleMouseLeave = () => {
               <Typography variant="body2" color={remainingDays > 7 ? '#38BAC0' : '#F52F53'}>{remainingText}</Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" marginTop={2}>
-              <Button variant="outlined" color="primary" size="small" onClick={e => { e.stopPropagation(); handleEditClick(project.project_id, project.name, project.start_date, project.end_date, project.max_points, project.image_url); }}>Editar</Button>
-              <Button variant="outlined" color="secondary" size="small" onClick={e => { e.stopPropagation(); handleDelete(project.project_id); }}>Eliminar</Button>
+              {/* Verifica el rol para permitir editar o eliminar */}
+              {project.role === 'ADMIN' && (
+                <>
+                  <Button variant="outlined" color="primary" size="small" onClick={e => { e.stopPropagation(); handleEditClick(project.project_id, project.name, project.start_date, project.end_date, project.max_points, project.image_url); }}>Editar</Button>
+                  <Button variant="outlined" color="secondary" size="small" onClick={e => { e.stopPropagation(); handleDelete(project.project_id); }}>Eliminar</Button>
+                </>
+              )}
             </Box>
           </Box>
 

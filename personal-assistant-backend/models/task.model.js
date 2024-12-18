@@ -13,53 +13,79 @@ const insert = async ({ Project_ID, Title, Description, Start_Date, End_Date, Du
 };
 
 
-const selectByProjectID = async (Project_ID) => {
-    // Consulta para obtener todas las tareas del proyecto
-    const query = {
-        text: 'SELECT * FROM TASK WHERE Project_ID = $1',
-        values: [Project_ID],
-    };
-
-    const { rows: tasks } = await db.query(query);
-
-    // Iteramos sobre las tareas para calcular el porcentaje y sumar puntos completados
-    for (let task of tasks) {
-        const taskID = task.Task_ID || task.task_id; // Compatibilidad con mayúsculas y minúsculas
-
-        if (!taskID) {
-            console.error('Error: Task_ID no encontrado para esta tarea');
-            continue;
+const selectByProjectID = async (Project_ID, user_id) => {
+    try {
+        if (!Project_ID || !user_id) {
+            return { ok: false, msg: 'Project_ID and user_id are required' };
         }
 
-        // Consulta para obtener la suma de puntos completados de la tarea
-        const progressQuery = {
-            text: 'SELECT COALESCE(SUM(Points_Completed), 0) as Total_Completed FROM PROGRESS_TASK WHERE Task_ID = $1',
-            values: [taskID],
-        };
+        // Obtenemos el rol del usuario en el proyecto
+        const userRole = await db.query(
+            'SELECT Role FROM USER_PROJECT WHERE User_ID = $1 AND Project_ID = $2',
+            [user_id, Project_ID]
+        );
 
-        const { rows: progress } = await db.query(progressQuery);
+        if (userRole.rowCount === 0) {
+            return { ok: false, msg: 'User is not assigned to this project' };
+        }
 
-        // Obtenemos la suma de puntos completados (si no hay registros, asumimos 0 puntos)
-        const totalCompleted = parseInt(progress[0]?.total_completed || 0, 10);
+        const role = userRole.rows[0].role;
 
-        // Obtenemos los puntos asignados a la tarea
-        const assignedPoints = parseInt(task.assigned_points || 0, 10);
+        // Consultamos las tareas del proyecto y verificamos los permisos de edición
+        const result = await db.query(
+            `SELECT t.*, 
+                    CASE WHEN ut.User_ID IS NOT NULL THEN true ELSE false END AS edited_permitted
+             FROM TASK t
+             LEFT JOIN USER_TASK ut ON t.Task_ID = ut.Task_ID AND ut.User_ID = $1
+             WHERE t.Project_ID = $2`,
+            [user_id, Project_ID]
+        );
 
-        // Calculamos el porcentaje de completado
-        const completionPercentage = assignedPoints > 0
-            ? (totalCompleted / assignedPoints) * 100
-            : 0;
+        const tasks = result.rows;
 
-        // Añadimos los datos calculados a la tarea
-        task.Completion_Percentage = Math.round(completionPercentage * 100) / 100; // Porcentaje redondeado a 2 decimales
-        task.Total_Completed = totalCompleted; // Puntos completados como número entero
+        // Iteramos sobre las tareas para calcular el porcentaje y sumar puntos completados
+        for (let task of tasks) {
+            const taskID = task.Task_ID || task.task_id; // Compatibilidad con mayúsculas y minúsculas
+
+            if (!taskID) {
+                console.error('Error: Task_ID no encontrado para esta tarea');
+                continue;
+            }
+
+            // Consulta para obtener la suma de puntos completados de la tarea
+            const progressQuery = {
+                text: 'SELECT COALESCE(SUM(Points_Completed), 0) as Total_Completed FROM PROGRESS_TASK WHERE Task_ID = $1',
+                values: [taskID],
+            };
+            const { rows: progress } = await db.query(progressQuery);
+
+            // Obtenemos la suma de puntos completados (si no hay registros, asumimos 0 puntos)
+            const totalCompleted = parseInt(progress[0]?.total_completed || 0, 10);
+
+            // Obtenemos los puntos asignados a la tarea
+            const assignedPoints = parseInt(task.assigned_points || 0, 10);
+
+            // Calculamos el porcentaje de completado
+            const completionPercentage = assignedPoints > 0
+                ? (totalCompleted / assignedPoints) * 100
+                : 0;
+
+            // Añadimos los datos calculados a la tarea
+            task.Completion_Percentage = Math.round(completionPercentage * 100) / 100; // Porcentaje redondeado a 2 decimales
+            task.Total_Completed = totalCompleted; // Puntos completados como número entero
+
+            // Agregamos el rol del usuario a cada tarea
+            task.role = role; // Asignamos el rol a la tarea
+        }
+
+        // Retornamos las tareas con los porcentajes y puntos completados, junto con el rol del usuario
+        return { ok: true, tasks };
+        
+    } catch (error) {
+        console.error('Error ejecutando la consulta:', error); // Log en caso de error
+        return { ok: false, msg: 'Internal Server Error' };
     }
-
-    // Retornamos las tareas con los porcentajes y puntos completados
-    return tasks;
 };
-
-
 
 
 

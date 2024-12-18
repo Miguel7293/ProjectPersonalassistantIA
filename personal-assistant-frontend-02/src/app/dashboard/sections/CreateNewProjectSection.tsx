@@ -118,7 +118,8 @@ const CreateProject: React.FC<GetData> = ({ userData }) => {
         // Guardar información en localStorage
         localStorage.setItem('projectId', projectId.toString());
         localStorage.setItem('userId', userData.id.toString());
-  
+        localStorage.setItem('userRol', "ADMIN");
+
         // Redirigir al entorno de tareas
         router.push('/EviromentTasks');
       } else {

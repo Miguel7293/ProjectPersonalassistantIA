@@ -51,7 +51,7 @@ const deleteProject = async (Project_ID) => {
 const selectByUserId = async (User_ID) => {
     const query = {
         text: `
-            SELECT P.*
+            SELECT P.*, UP.Role
             FROM PROJECT P
             INNER JOIN USER_PROJECT UP ON P.Project_ID = UP.Project_ID
             WHERE UP.User_ID = $1`,
@@ -60,6 +60,7 @@ const selectByUserId = async (User_ID) => {
     const { rows } = await db.query(query);
     return rows;
 };
+
 // En el archivo 'userProject.model.js' o similar
 
 export const UserProjectModel = {

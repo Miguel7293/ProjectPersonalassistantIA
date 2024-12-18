@@ -5,6 +5,7 @@ export interface Project {
   end_date: string;
   max_points: number;
   image_url: string;
+  role: string;
 }
 
 export interface Collaborator {

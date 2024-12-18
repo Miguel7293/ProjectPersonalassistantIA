@@ -52,8 +52,14 @@ import 'react-date-range/dist/theme/default.css'; // Tema predeterminado
 const TaskManagement: React.FC = () => {
   const theme = useTheme();
 
+  const [RoleUser, setRoleUser] = useState<string | null>(null);
 
-
+  useEffect(() => {
+    const storedRole = localStorage.getItem('userRol');
+    if (storedRole) {
+      setRoleUser(storedRole); // Guardamos el rol en el estado
+    }
+  }, []); 
 
   // Estado para los diálogos
   const [openTaskDialog, setOpenTaskDialog] = useState(false);
@@ -77,38 +83,61 @@ const TaskManagement: React.FC = () => {
   //  setSelectedTask(task);
   //  setProgressDialog(!progressDialog);
   //};
-
-
   
   useEffect(() => {
     const storedProjectId = localStorage.getItem('projectId');
-    console.log('Project ID:', storedProjectId); 
+    const storedUserId = localStorage.getItem('userId');
+  
+    console.log('Project ID:', storedProjectId); // Verifica el ID del proyecto
+    console.log('User ID:', storedUserId); // Verifica el ID del usuario
+  
     setProjectId(storedProjectId);
-    if (storedProjectId) {
-      fetchTasks(storedProjectId);
+    setUserId(storedUserId);
+  
+    // Usar directamente los valores almacenados para la condición
+    if (storedProjectId && storedUserId) {
+      fetchTasks(storedProjectId, storedUserId);
     }
   }, []);
-
-  const fetchTasks = async (projectId: string) => {
+  
+  const fetchTasks = async (projectId: string, userId: string) => {
     try {
       const response = await fetch('http://localhost:5000/api/v1/task/task/operation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sqlQuery: 'SELECT', Project_ID: projectId }),
+        body: JSON.stringify({ sqlQuery: 'SELECT', Project_ID: projectId, user_id: userId }),
       });
+  
+      if (!response.ok) {
+        console.error('Error en la respuesta del servidor:', response.status, response.statusText);
+        return;
+      }
+  
       const data = await response.json();
-      console.log(data);
-      if (data.ok) {
-        // Convertir las fechas a objetos Date
-        const tasksWithDates = data.data.map((task: any) => ({
-          ...task,
-          startDate: new Date(task.start_date),
+      console.log('Respuesta recibida:', data);
+  
+      // Verifica si el campo tasks existe y es un arreglo
+      if (data && data.ok && Array.isArray(data.tasks)) {
+        const tasksWithDates = data.tasks.map((task: any): Task => ({
+          projectId: task.project_id,
+          title: task.title || 'Sin título',
+          description: task.description || undefined,
+          startDate: task.start_date ? new Date(task.start_date) : new Date(),
           endDate: task.end_date ? new Date(task.end_date) : undefined,
           dueDate: task.due_date ? new Date(task.due_date) : undefined,
+          status: task.status || 'NOT ASSIGNED',
+          priority: task.priority || 'LOW',
+          assignedPoints: task.assigned_points || 0,
+          id: task.task_id,
+          role: task.role || 'UNKNOWN',
+          editedPermitted: task.edited_permitted || false,
+          completionPercentage: task.Completion_Percentage || 0, // Nuevo campo
+          totalCompleted: task.Total_Completed || 0, // Nuevo campo
         }));
+  
         setTasks(tasksWithDates);
       } else {
-        console.error('Error fetching tasks:', data.message);
+        console.error('Formato inesperado en la respuesta:', data);
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -118,6 +147,9 @@ const TaskManagement: React.FC = () => {
       }
     }
   };
+  
+  
+  
 
 /////////////////////////////////////////////////// PARA LA CREACION DE TAREAS ///////////////////////////////////
 
@@ -126,7 +158,7 @@ const TaskManagement: React.FC = () => {
     const [tasks, setTasks] = useState<any[]>([]);  
     const [projectId, setProjectId] = useState<string | null>(null);
 
-  
+
 
 
     // Estados para la tarea
@@ -328,14 +360,18 @@ const handleAddCollaborator2 = () => {
     const [remainingPoints, setRemainingPoints] = useState<number>(0);
     const [userId, setUserId] = useState<string | null>(null);
     useEffect(() => {
+      const storedProjectId = localStorage.getItem('projectId');
       const storedUserId = localStorage.getItem('userId');
-      
-      console.log('User ID:', storedUserId); // Este será un string o null
     
+      console.log('Project ID:', storedProjectId); // Verifica el ID del proyecto
+      console.log('User ID:', storedUserId); // Verifica el ID del usuario
+    
+      setProjectId(storedProjectId);
       setUserId(storedUserId);
     
-      if (storedUserId) {
-        fetchTasks(storedUserId);  // No es necesario convertirlo a número
+      // Usar directamente los valores almacenados para la condición
+      if (storedProjectId && storedUserId) {
+        fetchTasks(storedProjectId, storedUserId);
       }
     }, []);
 
@@ -644,14 +680,16 @@ const handleDeleteTask = (taskId: number) => {
               {/* Botones de Acción */}
               <Box display="flex" alignItems="center">
                 {/* Botón para Añadir Tarea */}
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleTaskDialogToggle}
-                  sx={{ marginRight: 2 }}
-                >
-                  Añadir Tarea
-                </Button>
+                {RoleUser === 'ADMIN' && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleTaskDialogToggle}
+                      sx={{ marginRight: 2 }}
+                    >
+                      Añadir Tarea
+                    </Button>
+                  )}
                 {/* Modal para crear tarea */}
                 <Dialog
   open={openTaskDialog}
@@ -931,7 +969,7 @@ const handleDeleteTask = (taskId: number) => {
               </TableHead>
               <TableBody>
               {tasks.map((task: any) => (
-                <TableRow key={task.task_id}>
+                <TableRow key={task.id}>
                   <TableCell>{task.title}</TableCell>
                   <TableCell>{task.startDate.toLocaleDateString()}</TableCell>
                   <TableCell>{task.endDate?.toLocaleDateString() ?? 'No definido'}</TableCell>
@@ -941,27 +979,151 @@ const handleDeleteTask = (taskId: number) => {
                       color={task.status === 'COMPLETED' ? 'success' : 'warning'}
                     />
                   </TableCell>
-                  <TableCell>{task.assigned_points}</TableCell>
+                  <TableCell>{task.assignedPoints}</TableCell>
                   <TableCell>{task.priority}</TableCell>
-                  <TableCell>{task.Completion_Percentage}%</TableCell>
+                  <TableCell>{task.completionPercentage}%</TableCell>
                   <TableCell>
-                  <Button 
-                    onClick={() => {
-                      setSelectedTaskId(task.task_id); 
-                      setTaskData(task); // Aquí almacenamos la tarea seleccionada
-                      setTitle(task.title); // Llenamos los campos con la información de la tarea
-                      setDescription(task.description || ''); 
-                      setStartDate(new Date(task.startDate));
-                      setEndDate(new Date(task.endDate || new Date()));
-                      setPriority(task.priority || 'HIGH');
-                      setAssignedPoints(task.assigned_points || 0);
-                      setCollaborators(task.collaborators || []);
-                      setOpenEditDialog(true); // Abrir el modal
-                    }} 
-                    color="primary"
-                  >
-                    Editar
-                  </Button>
+                  {task.role === 'ADMIN' && (
+      <div>
+        {/* Botón Editar */}
+        <Button 
+          onClick={() => {
+            setSelectedTaskId(task.id); 
+            setTaskData(task); // Aquí almacenamos la tarea seleccionada
+            setTitle(task.title); // Llenamos los campos con la información de la tarea
+            setDescription(task.description || ''); 
+            setStartDate(new Date(task.startDate));
+            setEndDate(new Date(task.endDate || new Date()));
+            setPriority(task.priority || 'HIGH');
+            setAssignedPoints(task.assignedPoints || 0);
+            setCollaborators(task.collaborators || []);
+            setOpenEditDialog(true); // Abrir el modal
+          }} 
+          color="primary"
+        >
+          Editar
+        </Button>
+
+        {/* Botón Progreso */}
+        <Button
+          onClick={() => {
+            setSelectedTaskId(task.id); 
+            setTask(task); // Almacena la tarea seleccionada
+            setAssignedPoints(task.assignedPoints || 0);
+            setTotal_Completed(task.totalCompleted || 0);
+            setRemainingPoints((task.assignedPoints || 0) - (task.totalCompleted || 0));
+            setCompletedPoints(0); // Resetea los puntos a avanzar
+            setOpenDialog(true); // Abre el diálogo
+          }}
+          color="secondary"
+        >
+          Progreso
+        </Button>
+
+        {/* Botón para mostrar detalles con Popover */}
+        <Button
+          onClick={(event) => handlePopoverOpen(event, task.id, task.description || "")}
+          color="secondary"
+        >
+          Det.
+        </Button>
+
+        {/* Botón Eliminar */}
+        <Button
+          onClick={() => handleDeleteTask(task.id)}
+          color="error"
+          variant="text"
+          size="small"
+          sx={{
+            fontWeight: 'bold',
+            color: '#d32f2f',
+            '&:hover': {
+              backgroundColor: 'rgba(211, 47, 47, 0.1)',
+              transform: 'scale(1.05)',
+            },
+            transition: 'all 0.3s ease',
+          }}
+        >
+          Eliminar
+        </Button>
+      </div>
+    )}
+
+    {task.role === 'COLLABORATOR' && (
+      <div>
+        {task.editedPermitted ? (
+          <>
+            {/* Botón Editar */}
+            <Button 
+              onClick={() => {
+                setSelectedTaskId(task.id); 
+                setTaskData(task); // Aquí almacenamos la tarea seleccionada
+                setTitle(task.title); // Llenamos los campos con la información de la tarea
+                setDescription(task.description || ''); 
+                setStartDate(new Date(task.startDate));
+                setEndDate(new Date(task.endDate || new Date()));
+                setPriority(task.priority || 'HIGH');
+                setAssignedPoints(task.assignedPoints || 0);
+                setCollaborators(task.collaborators || []);
+                setOpenEditDialog(true); // Abrir el modal
+              }} 
+              color="primary"
+            >
+              Editar
+            </Button>
+
+            {/* Botón Progreso */}
+            <Button
+              onClick={() => {
+                setSelectedTaskId(task.id); 
+                setTask(task); // Almacena la tarea seleccionada
+                setAssignedPoints(task.assignedPoints || 0);
+                setTotal_Completed(task.totalCompleted || 0);
+                setRemainingPoints((task.assignedPoints || 0) - (task.totalCompleted || 0));
+                setCompletedPoints(0); // Resetea los puntos a avanzar
+                setOpenDialog(true); // Abre el diálogo
+              }}
+              color="secondary"
+            >
+              Progreso
+            </Button>
+
+            {/* Botón para mostrar detalles con Popover */}
+            <Button
+              onClick={(event) => handlePopoverOpen(event, task.id, task.description || "")}
+              color="secondary"
+            >
+              Det.
+            </Button>
+
+            {/* Botón Eliminar */}
+            <Button
+              onClick={() => handleDeleteTask(task.id)}
+              color="error"
+              variant="text"
+              size="small"
+              sx={{
+                fontWeight: 'bold',
+                color: '#d32f2f',
+                '&:hover': {
+                  backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                  transform: 'scale(1.05)',
+                },
+                transition: 'all 0.3s ease',
+              }}
+            >
+              Eliminar
+            </Button>
+          </>
+        ) : (
+          <Button
+          onClick={(event) => handlePopoverOpen(event, task.id, task.description || "")}
+          color="secondary"
+        >
+          Det.
+        </Button>        )}
+      </div>
+    )}
                   {/* Modal para los datos de edit */}
                   <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
   <DialogTitle>Editar Tarea</DialogTitle>
@@ -1094,20 +1256,7 @@ const handleDeleteTask = (taskId: number) => {
 
 
 
-<Button
-  onClick={() => {
-    setSelectedTaskId(task.task_id); 
-    setTask(task); // Almacena la tarea seleccionada
-    setAssignedPoints(task.assigned_points || 0);
-    setTotal_Completed(task.Total_Completed || 0);
-    setRemainingPoints((task.assigned_points || 0) - (task.Total_Completed || 0));
-    setCompletedPoints(0); // Resetea los puntos a avanzar
-    setOpenDialog(true); // Abre el diálogo
-  }}
-  color="secondary"
->
-  Progreso
-</Button>
+
 
 
 
@@ -1147,32 +1296,7 @@ const handleDeleteTask = (taskId: number) => {
 
 
 
-                    {/* Botón para mostrar detalles con Popover */}
-                    <Button
-                      onClick={(event) => handlePopoverOpen(event, task.task_id, task.description || "")}
-                      color="secondary"
-                    >
-                      Det.
-                    </Button>
-                    <Button
-              onClick={() => handleDeleteTask(task.task_id)}
-              color="error"  // Solo el texto será rojo
-              variant="text"//"outlined"  // Fondo transparente
-              size="small"  // Tamaño pequeño
-              sx={{
-                fontWeight: 'bold',  // Texto en negrita
-                //borderColor: '#d32f2f',  // Bordes de color rojo
-                color: '#d32f2f',  // Texto rojo
-                '&:hover': {
-                  backgroundColor: 'rgba(211, 47, 47, 0.1)',  // Fondo suave de color rojo al hacer hover
-                  //borderColor: '#d32f2f',  // Mantener el borde rojo al hacer hover
-                  transform: 'scale(1.05)',  // Efecto de escala al pasar el mouse
-                },
-                transition: 'all 0.3s ease',  // Suaviza la transición al hacer hover
-              }}
-            >
-              Eliminar
-            </Button>
+
                   </TableCell>
                     {/* Popover para mostrar detalles de la tarea */}
   <Popover

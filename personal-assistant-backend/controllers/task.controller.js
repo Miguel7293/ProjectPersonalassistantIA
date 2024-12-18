@@ -4,6 +4,7 @@ import { db } from '../database/connection.database.js';  // Asegúrate de tener
 const performOperation = async (req, res) => {
     try {
         const { 
+            user_id,
             sqlQuery, 
             Task_ID, 
             Project_ID, 
@@ -118,12 +119,27 @@ const performOperation = async (req, res) => {
                 break;
             
 
-            case 'SELECT':
-                if (!Project_ID) {
-                    return res.status(400).json({ ok: false, msg: 'Project_ID is required for SELECT' });
-                }
-                result = await TaskModel.selectByProjectID(Project_ID);
-                break;
+                case 'SELECT':
+                    if (!Project_ID || !user_id) {
+                        return res.status(400).json({ ok: false, msg: 'Project_ID and user_id are required for SELECT' });
+                    }
+                
+                    try {
+                        // Llamada a la función selectByProjectID con los dos parámetros
+                        const result = await TaskModel.selectByProjectID(Project_ID, user_id);
+                
+                        // Verificamos si la respuesta es exitosa
+                        if (result.ok) {
+                            return res.status(200).json({ ok: true, tasks: result.tasks });
+                        } else {
+                            return res.status(400).json({ ok: false, msg: result.msg });
+                        }
+                    } catch (error) {
+                        console.error('Error al ejecutar SELECT:', error);
+                        return res.status(500).json({ ok: false, msg: 'Internal Server Error' });
+                    }
+                    break;
+                
 
             case 'UPDATE':
                 if (!Task_ID || !Title) {

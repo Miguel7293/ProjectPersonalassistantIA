@@ -87,7 +87,7 @@ CREATE TABLE NOTIFICATION (
 
 
 -- Tabla USER_PROJECT
-CREATE TABLE                                                                                                                         (
+CREATE TABLE USER_PROJECT (                                                                                                                 (
     User_ID INT NOT NULL,
     Project_ID INT NOT NULL,
     Role VARCHAR(50), -- ADMIN | COLLABORATOR

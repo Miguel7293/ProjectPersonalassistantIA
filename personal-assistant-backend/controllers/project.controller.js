@@ -64,16 +64,22 @@ const performOperation = async (req, res) => {
                 result = await UserProjectModel.insert(userProjectData);
                 return res.json({ ok: true, data: { User_ID, Project_ID } });
                 
-            case 'SELECT':
-                if (User_ID) {
-                    result = await ProjectModel.selectByUserId(User_ID);
-                    return res.json({ ok: true, data: result });
-                } else if (Project_ID) {
-                    result = await ProjectModel.selectById(Project_ID);
-                    return res.json({ ok: true, data: result });
-                } else {
-                    return res.status(400).json({ ok: false, msg: 'User_ID or Project_ID is required for SELECT' });
-                }
+                case 'SELECT':
+                    if (User_ID) {
+                        result = await ProjectModel.selectByUserId(User_ID);
+                        return res.json({ 
+                            ok: true, 
+                            data: result.map(project => ({
+                                ...project,
+                                role: project.role // Agrega el rol
+                            }))
+                        });
+                    } else if (Project_ID) {
+                        result = await ProjectModel.selectById(Project_ID);
+                        return res.json({ ok: true, data: result });
+                    } else {
+                        return res.status(400).json({ ok: false, msg: 'User_ID or Project_ID is required for SELECT' });
+                    }
 
             case 'UPDATE':
                 if (!Project_ID || !Name || !Start_Date) {

@@ -1,14 +1,20 @@
 export interface Task {
-    projectId: number; // ID del proyecto asociado
-    title: string; // Título de la tarea
-    description?: string; // Descripción (opcional)
-    startDate: Date; // Fecha de inicio
-    endDate?: Date; // Fecha límite (opcional)
-    dueDate?: Date; // Fecha de vencimiento (opcional)
-    status: 'PROGRESS' | 'COMPLETED' | 'NOT COMPLETED' | 'NOT STARTED' | 'NOT ASSIGNED'; // Estado
-    priority: 'LOW' | 'MEDIUM' | 'HIGH'; // Prioridad
-    assignedPoints: number; // Puntos asignados
-  }
+  id: number; // ID único de la tarea (task_id)
+  projectId: number;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate?: Date;
+  dueDate?: Date;
+  status: 'PROGRESS' | 'COMPLETED' | 'NOT COMPLETED' | 'NOT STARTED' | 'NOT ASSIGNED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  assignedPoints: number;
+  role: string; // Rol asociado a la tarea
+  editedPermitted: boolean; // Permite edición o no
+  completionPercentage: number; // Porcentaje de completado
+  totalCompleted: number; // Puntos completados en la tarea
+}
+
 
   
   // Tipo para un colaborador
